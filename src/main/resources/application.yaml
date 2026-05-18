@@ -1,39 +1,42 @@
 server:
   port: 1200
+
 spring:
   application:
-    name: stream
+    name: stream-app
   servlet:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
+
   logging:
     level:
       root: DEBUG
     file:
       name: logs/twitch.log
+
   datasource:
-    url: jdbc:sqlite:src/main/resources/stream.db
-    username:
-    password:
-    driver-class-name: org.sqlite.JDBC
+    url: jdbc:h2:file:./data/streamdb;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: zaccalos
+    password: zaccalos
+
     hikari:
-      schema: public
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-    jpa:
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    show-sql: true
+    properties:
       hibernate:
-        ddl-auto: validate
-        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-      show-sql: true
-      database-platform: org.hibernate.dialect.PostgreSQLDialect
-      properties:
-        hibernate:
-          format_sql: true
-          dialect: org.hibernate.dialect.SQLiteDialect
+        format_sql: true
+
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
