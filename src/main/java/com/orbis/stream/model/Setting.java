@@ -43,6 +43,4 @@ public class Setting {
     @ColumnDefault("Zingy")
     private String channelName;
 
-    @ManyToOne
-    private User user;
 }
