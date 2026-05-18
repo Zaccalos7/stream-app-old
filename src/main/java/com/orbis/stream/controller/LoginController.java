@@ -1,7 +1,6 @@
 package com.orbis.stream.controller;
 
 import com.orbis.stream.component.LoggerMessageComponent;
-import com.orbis.stream.record.LoginRecord;
 import com.orbis.stream.record.RegisterRecord;
 import com.orbis.stream.handler.ResponseHandler;
 import com.orbis.stream.security.AuthenticatorService;

@@ -1,8 +1,5 @@
 package com.orbis.stream.security;
 
-import com.orbis.stream.record.LoginRecord;
-import com.orbis.stream.model.Credential;
-import com.orbis.stream.repository.CredentialRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

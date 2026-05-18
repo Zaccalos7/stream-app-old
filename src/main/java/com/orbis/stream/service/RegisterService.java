@@ -1,16 +1,8 @@
 package com.orbis.stream.service;
 
 import com.orbis.stream.component.LoggerMessageComponent;
-import com.orbis.stream.dto.CredentialDto;
-import com.orbis.stream.dto.UserDto;
 import com.orbis.stream.exceptions.DuplicationEntityException;
 import com.orbis.stream.record.RegisterRecord;
-import com.orbis.stream.mapping.mapperDTO.CredentialMapper;
-import com.orbis.stream.mapping.mapperDTO.UserMapper;
-import com.orbis.stream.model.Credential;
-import com.orbis.stream.model.User;
-import com.orbis.stream.repository.CredentialRepository;
-import com.orbis.stream.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,6 @@
 package com.orbis.stream.mapping.mapperRECORD;
 
 import com.orbis.stream.mapping.BaseMapper;
-import com.orbis.stream.mapping.mapperDTO.UserMapper;
 import com.orbis.stream.model.Setting;
 import com.orbis.stream.record.SettingRecord;
 import org.mapstruct.BeanMapping;
