@@ -13,10 +13,10 @@ spring:
     file:
       name: logs/twitch.log
   datasource:
-    url: jdbc:postgresql://localhost:5432/stream
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:sqlite:src/main/resources/stream.db
+    username:
+    password:
+    driver-class-name: org.sqlite.JDBC
     hikari:
       schema: public
       maximum-pool-size: 10
@@ -33,7 +33,7 @@ spring:
       properties:
         hibernate:
           format_sql: true
-          dialect: org.hibernate.dialect.PostgresSQLDialect
+          dialect: org.hibernate.dialect.SQLiteDialect
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
