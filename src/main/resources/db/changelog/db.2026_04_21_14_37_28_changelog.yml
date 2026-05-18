@@ -1,0 +1,19 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776782250896-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: user_name
+            type: varchar(255)
+        tableName: video_live_history
+- changeSet:
+    id: 1776782250896-2
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: user
+        tableName: video_live_history
+

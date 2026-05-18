@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1778705510581-1
+    author: Utente (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValueNumeric: 2
+            name: gop_size
+            type: integer
+        tableName: video_setting
+

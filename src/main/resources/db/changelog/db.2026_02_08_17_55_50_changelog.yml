@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1770573352483-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValueBoolean: false
+            name: has_verified_email
+            type: BOOLEAN
+        tableName: credentials
+

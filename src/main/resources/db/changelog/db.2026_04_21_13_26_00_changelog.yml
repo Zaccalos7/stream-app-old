@@ -1,0 +1,21 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776777962192-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: local_date_time_start_live
+            type: timestamp(6)
+        tableName: video_live_history
+- changeSet:
+    id: 1776777962192-2
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: start_live_date
+        tableName: video_live_history
+

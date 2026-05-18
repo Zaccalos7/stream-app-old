@@ -1,0 +1,12 @@
+databaseChangeLog:
+- changeSet:
+    id: 1773357108145-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: description
+            type: TEXT
+        tableName: setting
+

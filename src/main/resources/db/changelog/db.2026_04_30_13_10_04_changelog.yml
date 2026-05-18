@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1777554608565-1
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: Zingy
+            name: channel_name
+            type: varchar(512)
+        tableName: video_live_history
+

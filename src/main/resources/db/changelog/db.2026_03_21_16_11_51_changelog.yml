@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1774109513142-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: /
+            name: video_folder
+            type: varchar(255)
+        tableName: setting
+

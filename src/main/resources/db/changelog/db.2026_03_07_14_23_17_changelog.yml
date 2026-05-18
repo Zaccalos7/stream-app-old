@@ -1,0 +1,10 @@
+databaseChangeLog:
+- changeSet:
+    id: 1772893398889-1
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: nick_name
+        constraintName: UC_USERSNICK_NAME_COL
+        tableName: users
+

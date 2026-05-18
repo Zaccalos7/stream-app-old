@@ -1,0 +1,41 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776865882495-1
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: N/A
+            name: platform_stream_name
+            type: varchar(255)
+        tableName: video_live_history
+- changeSet:
+    id: 1776865882495-2
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: N/A
+            name: stream_key
+            type: varchar(512)
+        tableName: video_live_history
+- changeSet:
+    id: 1776865882495-3
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: N/A
+            name: stream_url
+            type: varchar(512)
+        tableName: video_live_history
+

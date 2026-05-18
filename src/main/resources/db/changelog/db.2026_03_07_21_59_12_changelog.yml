@@ -1,0 +1,10 @@
+databaseChangeLog:
+- changeSet:
+    id: 1772920754288-1
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: stream_url, stream_key
+        constraintName: UK7pcrsfuxnv2i8hcg6juwjxokn
+        tableName: setting
+

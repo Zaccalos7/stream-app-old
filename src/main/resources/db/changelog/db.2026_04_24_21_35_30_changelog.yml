@@ -1,0 +1,12 @@
+databaseChangeLog:
+- changeSet:
+    id: 1777066532055-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: video_codec_name
+            type: varchar(255)
+        tableName: video_setting
+

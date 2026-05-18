@@ -1,0 +1,101 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776773872498-6
+    author: zaccalos (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: video_live_history
+        constraintName: FK8vwiaafn2bd3ty3yanu0qd6bt
+- changeSet:
+    id: 1776773872498-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: folder_of_video_to_stream
+            type: TEXT
+        tableName: video_live_history
+- changeSet:
+    id: 1776773872498-2
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: start_live_date
+            type: varchar(255)
+        tableName: video_live_history
+- changeSet:
+    id: 1776773872498-3
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: user
+            type: varchar(255)
+        tableName: video_live_history
+- changeSet:
+    id: 1776773872498-4
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: video_live_history_pkid
+            type: bigint
+        tableName: video
+- changeSet:
+    id: 1776773872498-5
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: video_live_history_pkid
+        baseTableName: video
+        constraintName: FKocdsxmh8atopr936tix991itj
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: pkid
+        referencedTableName: video_live_history
+        validate: true
+- changeSet:
+    id: 1776773872498-7
+    author: zaccalos (generated)
+    changes:
+    - dropUniqueConstraint:
+        constraintName: UKh6vyiwakhdklk8uvagn6m6hkm
+        tableName: video
+- changeSet:
+    id: 1776773872498-8
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: message
+        tableName: video_live_history
+- changeSet:
+    id: 1776773872498-9
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: success
+        tableName: video_live_history
+- changeSet:
+    id: 1776773872498-10
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: time_zone
+        tableName: video_live_history
+- changeSet:
+    id: 1776773872498-11
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: video_pkid
+        tableName: video_live_history
+

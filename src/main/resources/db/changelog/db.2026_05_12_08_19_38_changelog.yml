@@ -1,0 +1,16 @@
+databaseChangeLog:
+- changeSet:
+    id: 1778573980859-1
+    author: zaccalos (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: video
+        constraintName: FKl4mgyvkvyejssrxawcspi61kv
+- changeSet:
+    id: 1778573980859-2
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: video_setting_id
+        tableName: video
+

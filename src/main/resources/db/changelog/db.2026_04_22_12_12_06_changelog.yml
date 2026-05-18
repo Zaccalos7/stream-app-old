@@ -1,0 +1,25 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776859930204-1
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: video_setting_id
+            type: integer
+        tableName: video
+- changeSet:
+    id: 1776859930204-2
+    author: marco (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: video_setting_id
+        baseTableName: video
+        constraintName: FKl4mgyvkvyejssrxawcspi61kv
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: video_setting
+        validate: true
+

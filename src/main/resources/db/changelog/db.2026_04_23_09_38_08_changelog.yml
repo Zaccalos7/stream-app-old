@@ -1,0 +1,12 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776937095036-1
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: message
+            type: TEXT
+        tableName: video
+

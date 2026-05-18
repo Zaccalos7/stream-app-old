@@ -1,0 +1,13 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776369678963-1
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueNumeric: 1
+            name: live_status
+            type: smallint
+        tableName: video
+

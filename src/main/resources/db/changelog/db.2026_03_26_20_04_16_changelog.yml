@@ -1,0 +1,150 @@
+databaseChangeLog:
+- changeSet:
+    id: 1774555458437-8
+    author: zaccalos (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: video
+        constraintName: FKq9md0xyawx9wd8o1qk9re2ic1
+- changeSet:
+    id: 1774555458437-1
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: audio_settingPK
+            name: id
+            type: INTEGER
+        - column:
+            name: audio_bitrate
+            type: INTEGER
+        - column:
+            name: audio_codec
+            type: INTEGER
+        tableName: audio_setting
+- changeSet:
+    id: 1774555458437-2
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: video_settingPK
+            name: id
+            type: INTEGER
+        - column:
+            name: gop_size
+            type: INTEGER
+        - column:
+            name: pixel_format
+            type: INTEGER
+        - column:
+            name: video_bitrate
+            type: INTEGER
+        - column:
+            name: video_codec
+            type: INTEGER
+        - column:
+            name: video_format
+            type: VARCHAR(255)
+        - column:
+            name: audio_setting_id
+            type: INTEGER
+        tableName: video_setting
+- changeSet:
+    id: 1774555458437-3
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: video_setting_id
+            type: INTEGER
+        - column:
+            name: option_key
+            type: VARCHAR(255)
+        - column:
+            name: option_value
+            type: VARCHAR(255)
+        tableName: video_settings_options
+- changeSet:
+    id: 1774555458437-4
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: audio_setting_id
+        constraintName: UC_VIDEO_SETTINGAUDIO_SETTING_ID_COL
+        tableName: video_setting
+- changeSet:
+    id: 1774555458437-5
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: name, extension, stream_platform
+        constraintName: UKipx6pv3euwiefu7ceuwn1jfm0
+        tableName: video
+- changeSet:
+    id: 1774555458437-6
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: audio_setting_id
+        baseTableName: video_setting
+        constraintName: FKaja1pt47uhaabtjxvj3onb8d9
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: audio_setting
+        validate: true
+- changeSet:
+    id: 1774555458437-7
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: video_setting_id
+        baseTableName: video_settings_options
+        constraintName: FKhaqymyoll0487age0gr69rg9l
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: video_setting
+        validate: true
+- changeSet:
+    id: 1774555458437-9
+    author: zaccalos (generated)
+    changes:
+    - dropUniqueConstraint:
+        constraintName: uc_videovideo_live_information_pkid_col
+        tableName: video
+- changeSet:
+    id: 1774555458437-10
+    author: zaccalos (generated)
+    changes:
+    - dropTable:
+        tableName: video_live_information
+- changeSet:
+    id: 1774555458437-11
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: duration_in_seconds
+        tableName: video
+- changeSet:
+    id: 1774555458437-12
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: video_live_information_pkid
+        tableName: video
+

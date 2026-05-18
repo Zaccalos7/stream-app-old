@@ -1,0 +1,12 @@
+databaseChangeLog:
+- changeSet:
+    id: 1777502206663-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: start_date_live
+            type: timestamp(6)
+        tableName: video
+

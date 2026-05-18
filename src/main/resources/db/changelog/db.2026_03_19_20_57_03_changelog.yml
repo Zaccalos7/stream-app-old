@@ -1,0 +1,116 @@
+databaseChangeLog:
+- changeSet:
+    id: 1773953825605-1
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: live_video_infoPK
+            name: pkid
+            type: INTEGER
+        - column:
+            name: live_status
+            type: SMALLINT
+        - column:
+            name: timestamp_of_last_frame_before_stopped
+            type: BIGINT
+        tableName: live_video_info
+- changeSet:
+    id: 1773953825605-2
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: videoPK
+            name: pkid
+            type: INTEGER
+        - column:
+            name: duration_in_seconds
+            type: INTEGER
+        - column:
+            name: extension
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: stream_platform
+            type: TEXT
+        - column:
+            name: live_video_info_pkid
+            type: INTEGER
+        tableName: video
+- changeSet:
+    id: 1773953825605-3
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: video_live_historyPK
+            name: pkid
+            type: BIGINT
+        - column:
+            name: message
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: success
+            type: BOOLEAN
+        - column:
+            name: time_zone
+            type: VARCHAR(255)
+        - column:
+            name: video_pkid
+            type: INTEGER
+        tableName: video_live_history
+- changeSet:
+    id: 1773953825605-4
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: live_video_info_pkid
+        constraintName: UC_VIDEOLIVE_VIDEO_INFO_PKID_COL
+        tableName: video
+- changeSet:
+    id: 1773953825605-5
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: video_pkid
+        baseTableName: video_live_history
+        constraintName: FK8vwiaafn2bd3ty3yanu0qd6bt
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: pkid
+        referencedTableName: video
+        validate: true
+- changeSet:
+    id: 1773953825605-6
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: live_video_info_pkid
+        baseTableName: video
+        constraintName: FKfnfcp9nry6agcp52ecih64qai
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: pkid
+        referencedTableName: live_video_info
+        validate: true
+

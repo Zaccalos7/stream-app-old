@@ -1,0 +1,12 @@
+databaseChangeLog:
+- changeSet:
+    id: 1775435606021-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: last_modified
+            type: timestamp(6)
+        tableName: video_setting
+

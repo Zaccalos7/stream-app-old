@@ -1,0 +1,46 @@
+databaseChangeLog:
+- changeSet:
+    id: 1772883357286-1
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: settingPK
+            name: id
+            type: INTEGER
+        - column:
+            name: platform_stream_name
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: stream_key
+            type: VARCHAR(512)
+        - column:
+            constraints:
+              nullable: false
+            name: stream_url
+            type: VARCHAR(512)
+        - column:
+            name: user_pkid
+            type: INTEGER
+        tableName: setting
+- changeSet:
+    id: 1772883357286-2
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_pkid
+        baseTableName: setting
+        constraintName: FK2b8q0emy3mf93up0nxwxg6es6
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: pkid
+        referencedTableName: users
+        validate: true
+

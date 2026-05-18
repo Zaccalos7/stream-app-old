@@ -1,0 +1,81 @@
+databaseChangeLog:
+- changeSet:
+    id: 1773955034924-5
+    author: zaccalos (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: video
+        constraintName: FKfnfcp9nry6agcp52ecih64qai
+- changeSet:
+    id: 1773955034924-1
+    author: zaccalos (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: video_live_informationPK
+            name: pkid
+            type: INTEGER
+        - column:
+            name: live_status
+            type: SMALLINT
+        - column:
+            name: timestamp_of_last_frame_before_stopped
+            type: BIGINT
+        tableName: video_live_information
+- changeSet:
+    id: 1773955034924-2
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: video_live_information_pkid
+            type: integer
+        tableName: video
+- changeSet:
+    id: 1773955034924-3
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: video_live_information_pkid
+        constraintName: UC_VIDEOVIDEO_LIVE_INFORMATION_PKID_COL
+        tableName: video
+- changeSet:
+    id: 1773955034924-4
+    author: zaccalos (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: video_live_information_pkid
+        baseTableName: video
+        constraintName: FKq9md0xyawx9wd8o1qk9re2ic1
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: pkid
+        referencedTableName: video_live_information
+        validate: true
+- changeSet:
+    id: 1773955034924-6
+    author: zaccalos (generated)
+    changes:
+    - dropUniqueConstraint:
+        constraintName: uc_videolive_video_info_pkid_col
+        tableName: video
+- changeSet:
+    id: 1773955034924-7
+    author: zaccalos (generated)
+    changes:
+    - dropTable:
+        tableName: live_video_info
+- changeSet:
+    id: 1773955034924-8
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: live_video_info_pkid
+        tableName: video
+

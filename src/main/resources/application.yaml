@@ -1,0 +1,53 @@
+server:
+  port: 1200
+spring:
+  application:
+    name: stream
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  logging:
+    level:
+      root: DEBUG
+    file:
+      name: logs/twitch.log
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stream
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: public
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+    jpa:
+      hibernate:
+        ddl-auto: validate
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+      show-sql: true
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      properties:
+        hibernate:
+          format_sql: true
+          dialect: org.hibernate.dialect.PostgresSQLDialect
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+  output:
+    ansi:
+      enabled: always
+
+springdoc:
+  api-docs:
+    path: /documentazione
+    packages-to-scan: com.orbis.stream.controller
+    title: "Stream"
+    version: "OPENAPI_3_0"
+  swagger-ui:
+    path: /swagger-ui.html
+    locale: it

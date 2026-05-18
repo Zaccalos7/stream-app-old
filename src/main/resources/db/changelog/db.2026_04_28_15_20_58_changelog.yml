@@ -1,0 +1,13 @@
+databaseChangeLog:
+- changeSet:
+    id: 1777389660175-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueBoolean: false
+            name: should_be_stop
+            type: boolean
+        tableName: video
+

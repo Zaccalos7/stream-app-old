@@ -1,0 +1,9 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776633835032-1
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: gop_size
+        tableName: video_setting
+

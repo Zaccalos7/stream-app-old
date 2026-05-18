@@ -1,0 +1,47 @@
+databaseChangeLog:
+- changeSet:
+    id: 1776716336977-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueNumeric: 0
+            name: last_time_stamp_before_stop
+            type: bigint
+        tableName: video
+- changeSet:
+    id: 1776716336977-2
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: video_path
+            type: varchar(255)
+        tableName: video
+- changeSet:
+    id: 1776716336977-3
+    author: zaccalos (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: name, extension, video_path
+        constraintName: UKh6vyiwakhdklk8uvagn6m6hkm
+        tableName: video
+- changeSet:
+    id: 1776716336977-4
+    author: zaccalos (generated)
+    changes:
+    - dropUniqueConstraint:
+        constraintName: UKipx6pv3euwiefu7ceuwn1jfm0
+        tableName: video
+- changeSet:
+    id: 1776716336977-5
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: stream_platform
+        tableName: video
+

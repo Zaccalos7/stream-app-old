@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1777466585562-1
+    author: marco (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: Zingy
+            name: channel_name
+            type: TEXT
+        tableName: setting
+

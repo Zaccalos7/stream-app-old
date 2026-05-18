@@ -1,0 +1,15 @@
+databaseChangeLog:
+- changeSet:
+    id: 1775912345756-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValueBoolean: false
+            name: is_video_and_audio_setting_active
+            type: boolean
+        tableName: video_setting
+

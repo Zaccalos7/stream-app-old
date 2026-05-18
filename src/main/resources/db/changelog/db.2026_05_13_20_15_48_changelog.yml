@@ -1,0 +1,22 @@
+databaseChangeLog:
+- changeSet:
+    id: 1778703350937-1
+    author: zaccalos (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            defaultValueNumeric: 2
+            name: gop_size
+            type: integer
+        tableName: video_setting
+- changeSet:
+    id: 1778703350937-2
+    author: zaccalos (generated)
+    changes:
+    - dropColumn:
+        columnName: gop_sizes
+        tableName: video_setting
+
