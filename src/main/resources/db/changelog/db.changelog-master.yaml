@@ -1,3 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: "db/changelog/db.2026_05_18_20_48_43_changelog.yml"
