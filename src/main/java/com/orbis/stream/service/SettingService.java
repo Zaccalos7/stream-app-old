@@ -37,7 +37,7 @@ public class SettingService {
     private final ResponseHandler responseHandler;
 
     private final SettingRepository settingRepository;
-    private final UserRepository userRepository;
+
 
     private final SettingMapper settingMapper;
     private final SettingRecordMapper settingRecordMapper;
@@ -65,15 +65,6 @@ public class SettingService {
 
         Setting setting = settingRecordMapper.toModel(settingRecord);
 
-        //@TODO insert login and pass the real user
-        User user = userRepository
-                .findByNickName(nickName)
-                .orElseThrow(()-> {
-                    log.error(loggerMessageComponent.printMessage("mario.not.found"));
-                    return new EntityNotFoundException("Utente Mario non trovato");
-                });
-
-        setting.setUser(user);
         settingRepository.save(setting);
 
     }
