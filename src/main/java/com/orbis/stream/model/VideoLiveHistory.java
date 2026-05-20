@@ -28,15 +28,15 @@ public class VideoLiveHistory {
     private LocalDateTime localDateTimeStartLive;
 
     @Column(nullable = false, length = 512)
-    @ColumnDefault("N/A")
+    @ColumnDefault("'N/A'")
     private String streamUrl;
 
     @Column(nullable = false, length = 512)
-    @ColumnDefault("N/A")
+    @ColumnDefault("'N/A'")
     private String streamKey;
 
     @Column(nullable = false)
-    @ColumnDefault("N/A")
+    @ColumnDefault("'N/A'")
     private String platformStreamName;
 
     private String userName;
