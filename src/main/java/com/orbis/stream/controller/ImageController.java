@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+@CrossOrigin(origins = "*")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
