@@ -1,0 +1,1 @@
+import{s as o}from"./api-stop-live-CVTOj5L6.js";const n=`${o}settings/save`,p=async({request:e})=>{const t=(await e.formData()).get("data"),a=JSON.parse(t),s=await(await fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(a)})).json();return{message:s.message,response:s.response}};export{p as clientAction};
