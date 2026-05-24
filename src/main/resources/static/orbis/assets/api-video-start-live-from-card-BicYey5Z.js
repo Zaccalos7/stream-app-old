@@ -1,0 +1,1 @@
+import{s as c}from"./api-setting-save-CVTOj5L6.js";const r=`${c}live/start-video-live`,p=async({request:e})=>{const t=(await e.formData()).get("video"),s=await fetch(r,{method:"POST",headers:{"Content-Type":"application/json"},body:t}).then(a=>a.json()),o=s.response==="success",n=s.message;return{success:o,message:n}};export{p as clientAction};
