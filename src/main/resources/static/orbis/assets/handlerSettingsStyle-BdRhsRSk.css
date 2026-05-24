@@ -1,0 +1,1 @@
+button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 30px #28145a26}button[type=submit]{background:#4c1d95d9;color:#fff;border:none}button[type=submit]:hover:not(:disabled){background:#4c1d95f2}button:disabled{opacity:.4;cursor:not-allowed}
