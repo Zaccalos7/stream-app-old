@@ -36,7 +36,7 @@ spring:
       ddl-auto: update
       database-platform: org.hibernate.community.dialect.SQLiteDialect
       physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
