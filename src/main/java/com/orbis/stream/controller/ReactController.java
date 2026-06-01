@@ -2,9 +2,10 @@ package com.orbis.stream.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
+@CrossOrigin(origins = "*")
 @Controller
 public class ReactController {
 
