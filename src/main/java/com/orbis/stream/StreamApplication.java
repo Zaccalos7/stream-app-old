@@ -14,7 +14,7 @@ import javafx.scene.web.WebView;
 
 
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
-@SpringBootApplication
+//@SpringBootApplication
 public class StreamApplication extends Application {
 
 	private ConfigurableApplicationContext springContext;
