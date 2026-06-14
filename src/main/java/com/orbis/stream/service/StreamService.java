@@ -423,7 +423,7 @@ public class StreamService {
 
         String[] files = fileName.split("\\.");
 
-        log.info("nome file" + fileName);
+        log.info("nome file{}", fileName);
 
         if(files.length < 2){
             throw new FileReadingException("video.not.valid", new Object[]{fileName});

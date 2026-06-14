@@ -54,7 +54,12 @@ public class ExceptionsHandler {
     public ResponseEntity<Map<String, String>> handleException(FileReadingException ex){
         Map<String, String> errorResponse;
         String errorCodeMessage = ex.getLocalizedMessage();
-        errorResponse = responseHandler.buildBadResponse(errorCodeMessage);
+        Object[] params = ex.getParams();
+
+        errorResponse = (params == null || params.length == 0)
+                ? responseHandler.buildBadResponse(errorCodeMessage)
+                : responseHandler.buildBadResponse(errorCodeMessage, params);
+
         return ResponseEntity.internalServerError().body(errorResponse);
     }
 

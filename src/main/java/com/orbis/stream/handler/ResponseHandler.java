@@ -35,6 +35,16 @@ public class ResponseHandler {
         return response;
     }
 
+    public Map<String, String> buildBadResponse(String code, Object[] params){
+        Map<String , String> response = new HashMap<>();
+
+        String localizedMessage = messageSource.getMessage(code, params, LocaleContextHolder.getLocale());
+        response.put("response", "error");
+        response.put("message", localizedMessage);
+
+        return response;
+    }
+
     public ResponseEntity<Map<String, String>> buildBadResponse(String code, HttpStatus status){
         Map<String , String> response = new HashMap<>();
 
