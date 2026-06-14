@@ -41,7 +41,7 @@ public class VideoSettingService {
         mappingAndSaveValue(videoSettingsRecord);
         log.info(loggerMessageComponent.printMessage("video.settings.saved"));
 
-        return responseHandler.buildResponse("video.settings.saved", HttpStatus.CREATED);
+        return responseHandler.build("video.settings.saved", HttpStatus.CREATED, null);
     }
 
     @Transactional
@@ -60,7 +60,7 @@ public class VideoSettingService {
         log.info(loggerMessageComponent.printMessage("video.settings.saved"));
 
         log.info(loggerMessageComponent.printMessage("success.operations"));
-        return responseHandler.buildResponse("success.operations", HttpStatus.CREATED);
+        return responseHandler.build("success.operations", HttpStatus.CREATED, null);
     }
 
 
@@ -103,7 +103,7 @@ public class VideoSettingService {
         editVideoSetting(videoSettingsRecord, id);
         log.info(loggerMessageComponent.printMessage("video.settings.modified"));
 
-        return responseHandler.buildResponse("video.settings.modified", HttpStatus.CREATED);
+        return responseHandler.build("video.settings.modified", HttpStatus.CREATED, null);
     }
 
     @Transactional
@@ -126,7 +126,7 @@ public class VideoSettingService {
     public ResponseEntity<Map<String, String>> deleteVideoSetting(Integer id) {
         deleteById(id);
         log.info(loggerMessageComponent.printMessage("delete.successful"));
-        return responseHandler.buildResponse("delete.successful", HttpStatus.OK);
+        return responseHandler.build("delete.successful", HttpStatus.OK, null);
     }
 
     private void deleteById(Integer id){

@@ -134,7 +134,7 @@ public class StreamService {
             }));
         });
 
-        return responseHandler.buildResponse("live.started", HttpStatus.ACCEPTED);
+        return responseHandler.build("live.started", HttpStatus.ACCEPTED, null);
 
     }
 
