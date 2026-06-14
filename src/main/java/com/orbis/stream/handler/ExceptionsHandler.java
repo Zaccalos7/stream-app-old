@@ -52,7 +52,7 @@ public class ExceptionsHandler {
 
     @ExceptionHandler(FileReadingException.class)
     public ResponseEntity<Map<String, String>> handleException(FileReadingException ex){
-        Map<String, String> errorResponse;
+        ResponseEntity<Map<String, String>> errorResponse;
         String errorCodeMessage = ex.getLocalizedMessage();
         Object[] params = ex.getParams();
 
@@ -60,15 +60,15 @@ public class ExceptionsHandler {
                 ? responseHandler.buildBadResponse(errorCodeMessage)
                 : responseHandler.buildBadResponse(errorCodeMessage, params);
 
-        return ResponseEntity.internalServerError().body(errorResponse);
+        return errorResponse;
     }
 
     @ExceptionHandler(LoginException.class)
     public ResponseEntity<Map<String, String>> handleException(LoginException ex){
-        Map<String, String> errorResponse;
+        ResponseEntity<Map<String, String>> errorResponse;
         String errorCodeMessage = ex.getLocalizedMessage();
         errorResponse = responseHandler.buildBadResponse(errorCodeMessage);
-        return ResponseEntity.internalServerError().body(errorResponse);
+        return errorResponse;
     }
 
     @ExceptionHandler(DuplicationEntityException.class)
@@ -84,7 +84,10 @@ public class ExceptionsHandler {
         ResponseEntity<Map<String, String>> errorResponse;
 
         String errorCodeMessage = ex.getLocalizedMessage();
-        errorResponse = responseHandler.buildBadResponse(errorCodeMessage, HttpStatus.NOT_FOUND);
+
+        Object[] params = ex.getParams();
+
+        errorResponse = responseHandler.buildBadResponse(errorCodeMessage, HttpStatus.NOT_FOUND, params);
         return errorResponse;
     }
 
