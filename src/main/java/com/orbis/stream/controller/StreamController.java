@@ -49,7 +49,7 @@ public class StreamController {
 
        streamService.stopVideoStreamingByPkid(videoLivePkid);
        log.info(loggerMessageComponent.printMessage("live.stopped"));
-       return responseHandler.buildResponse("live.stopped", HttpStatus.OK);
+       return responseHandler.build("live.stopped", HttpStatus.OK, null);
     }
 
     @PostMapping("/start-video-live")
