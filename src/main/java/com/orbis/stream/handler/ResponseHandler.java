@@ -15,35 +15,34 @@ import java.util.Map;
 public class ResponseHandler {
     private final MessageSource messageSource;
 
-    public ResponseEntity<Map<String, String>> buildResponse(String code, HttpStatus status){
-        Map<String , String> response = new HashMap<>();
+    public ResponseEntity<Map<String, String>> build(String code, HttpStatus status, Object[] params) {
+        Map<String, String> response = new HashMap<>();
+        String localizedMessage = messageSource.getMessage(code, params != null ? params : new Object[]{}, LocaleContextHolder.getLocale());
 
-        String localizedMessage = messageSource.getMessage(code, new Object[]{}, LocaleContextHolder.getLocale());
-        response.put("response", "success");
+        String outcome = status.is2xxSuccessful() ? "success" : "error";
+
+        response.put("response", outcome);
         response.put("message", localizedMessage);
 
         return new ResponseEntity<>(response, status);
     }
 
-    public Map<String, String> buildBadResponse(String code){
-        Map<String , String> response = new HashMap<>();
-
-        String localizedMessage = messageSource.getMessage(code, new Object[]{}, LocaleContextHolder.getLocale());
-        response.put("response", "error");
-        response.put("message", localizedMessage);
-
-        return response;
+    public ResponseEntity<Map<String, String>> buildBadResponse(String code, HttpStatus status, Object[] params) {
+        return build(code, status, params);
     }
 
-    public ResponseEntity<Map<String, String>> buildBadResponse(String code, HttpStatus status){
-        Map<String , String> response = new HashMap<>();
-
-        String localizedMessage = messageSource.getMessage(code, new Object[]{}, LocaleContextHolder.getLocale());
-        response.put("response", "error");
-        response.put("message", localizedMessage);
-
-        return new ResponseEntity<>(response, status);
+    public ResponseEntity<Map<String, String>> buildBadResponse(String code, HttpStatus status) {
+        return build(code, status, null);
     }
+
+    public ResponseEntity<Map<String, String>> buildBadResponse(String code, Object[] params) {
+        return build(code, HttpStatus.INTERNAL_SERVER_ERROR, params);
+    }
+
+    public ResponseEntity<Map<String, String>> buildBadResponse(String code) {
+        return build(code, HttpStatus.INTERNAL_SERVER_ERROR, null);
+    }
+
 
     /*
         This method is useful when you’re dealing with an exception whose message can vary in many different ways

@@ -39,18 +39,6 @@ import java.util.Map;
 
 import java.util.concurrent.locks.LockSupport;
 
-/*
-Pacing in tempo reale: Il blocco Thread.sleep calcola la differenza tra il timestamp del video e il tempo effettivo trascorso dall'inizio del programma. Questo frena l'invio dei pacchetti in modo che venga riprodotto a velocità normale.
-
-Sincronizzazione Timestamp: È stato aggiunto recorder.setTimestamp(timestamp); per assicurarsi che l'audio e il video viaggino sincronizzati e vengano letti correttamente da Twitch.
-
-GOP Size (Keyframe): Aggiunto recorder.setGopSize((int) (fps * 2));. Twitch impone rigorosamente l'invio di un keyframe ogni 2 secondi, altrimenti la live risulta instabile.
-
-Preset e Tune: Aggiunti "veryfast" e "zerolatency" per istruire l'encoder a minimizzare la latenza di elaborazione, essenziale per lo streaming live.
-
-Parametri dinamici: Ora il metodo accetta l'URL locale e la key come stringhe, così puoi richiamarlo passandogli qualsiasi file video e qualsiasi account senza modificare il codice sorgente.
- */
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -146,7 +134,7 @@ public class StreamService {
             }));
         });
 
-        return responseHandler.buildResponse("live.started", HttpStatus.ACCEPTED);
+        return responseHandler.build("live.started", HttpStatus.ACCEPTED, null);
 
     }
 
@@ -435,7 +423,7 @@ public class StreamService {
 
         String[] files = fileName.split("\\.");
 
-        log.info("nome file" + fileName);
+        log.info("nome file{}", fileName);
 
         if(files.length < 2){
             throw new FileReadingException("video.not.valid", new Object[]{fileName});

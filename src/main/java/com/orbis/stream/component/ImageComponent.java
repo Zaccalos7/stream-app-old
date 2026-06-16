@@ -32,7 +32,7 @@ public class ImageComponent {
 
     public ResponseEntity<Map<String, String>> saveImage(MultipartFile image){
         saveImageOnDirectory(image);
-        return responseHandler.buildResponse("image.saved", HttpStatus.CREATED);
+        return responseHandler.build("image.saved", HttpStatus.CREATED, null);
     }
 
     private void saveImageOnDirectory(MultipartFile file){

@@ -51,7 +51,7 @@ public class SettingService {
         saveSettings(settingRecord);
 
         mapResponseEntity = responseHandler
-                .buildResponse("setting.created", HttpStatus.CREATED);
+                .build("setting.created", HttpStatus.CREATED, null);
 
         return mapResponseEntity;
     }
@@ -111,7 +111,7 @@ public class SettingService {
 
         checkIfExistAndUpdateIt(id, settingRecord);
 
-        response = responseHandler.buildResponse("setting.update",HttpStatus.ACCEPTED);
+        response = responseHandler.build("setting.update",HttpStatus.ACCEPTED, null);
 
         return response;
     }
@@ -132,7 +132,7 @@ public class SettingService {
     public ResponseEntity<Map<String,String>> deleteAStreamingSetting(Integer id) {
         checkIfSettingExistAndThenDeleteIt(id);
 
-        return responseHandler.buildResponse("setting.delete",HttpStatus.OK);
+        return responseHandler.build("setting.delete",HttpStatus.OK, null);
     }
 
 

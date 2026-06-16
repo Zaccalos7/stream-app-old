@@ -130,7 +130,7 @@ public class VideoService {
             changeStatusLiveToOffline(video);
         });
 
-        return responseHandler.buildResponse("unlock.in.progress", HttpStatus.ACCEPTED);
+        return responseHandler.build("unlock.in.progress", HttpStatus.ACCEPTED, null);
     }
 
 
