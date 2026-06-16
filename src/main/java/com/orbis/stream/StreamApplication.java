@@ -1,57 +1,85 @@
 package com.orbis.stream;
 
-import javafx.stage.Stage;
-import org.springframework.boot.SpringApplication;
+import me.friwi.jcefmaven.CefAppBuilder;
+import me.friwi.jcefmaven.CefInitializationException;
+import me.friwi.jcefmaven.UnsupportedPlatformException;
+import org.cef.CefApp;
+import org.cef.CefClient;
+import org.cef.browser.CefBrowser;
+import org.cef.handler.CefLifeSpanHandlerAdapter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.web.WebView;
 
-
-
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @SpringBootApplication
-public class StreamApplication extends Application {
-
-	private ConfigurableApplicationContext springContext;
+public class StreamApplication {
 
 	public static void main(String[] args) {
-		Application.launch(StreamApplication.class, args);
-	}
-
-	@Override
-	public void init() {
 		SpringApplicationBuilder builder = new SpringApplicationBuilder(StreamApplication.class);
 		builder.headless(false);
-		springContext = builder.run();
+		ConfigurableApplicationContext springContext = builder.run(args);
+
+		SwingUtilities.invokeLater(() -> createAndShowGUI(springContext));
 	}
 
-	@Override
-	public void start(Stage stage) {
-		WebView webView = new WebView();
-		webView.getEngine().load("http://localhost:1200/orbis/handler");
+	private static void createAndShowGUI(ConfigurableApplicationContext springContext) {
+		try {
+			CefAppBuilder cefAppBuilder = new CefAppBuilder();
+			cefAppBuilder.setInstallDir(new File("jcef-bundle"));
+			cefAppBuilder.getCefSettings().log_severity = org.cef.CefSettings.LogSeverity.LOGSEVERITY_DISABLE;
 
-		Scene scene = new Scene(webView, 1920, 1080);
-		stage.setScene(scene);
+			CefApp cefApp = cefAppBuilder.build();
+			CefClient cefClient = cefApp.createClient();
 
-		stage.setOnCloseRequest(event -> {
-			if (springContext != null) {
-				springContext.close();
-			}
-			System.exit(0);
-		});
+			CefBrowser browser = cefClient.createBrowser("http://localhost:1200/orbis/handler", false, false);
+			Component browserUI = browser.getUIComponent();
 
-		stage.show();
+			JFrame frame = new JFrame("Orbis Stream");
+			frame.getContentPane().add(browserUI, BorderLayout.CENTER);
+			frame.setSize(1920, 1080);
+			frame.setLocationRelativeTo(null);
+
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+			cefClient.addLifeSpanHandler(new CefLifeSpanHandlerAdapter() {
+				public boolean doClose(CefClient client, CefBrowser browser) {
+					closeApplication(springContext, frame);
+					return true;
+				}
+			});
+
+			frame.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					closeApplication(springContext, frame);
+				}
+			});
+
+			frame.setVisible(true);
+
+		} catch (UnsupportedPlatformException | CefInitializationException | IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
-	@Override
-	public void stop() {
+	private static void closeApplication(ConfigurableApplicationContext springContext, JFrame frame) {
+		try {
+			CefApp.getInstance().dispose();
+		} catch (Exception e) {
+		}
 		if (springContext != null) {
 			springContext.close();
 		}
+		frame.dispose();
+		System.exit(0);
 	}
 }
