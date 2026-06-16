@@ -81,15 +81,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>21</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-web</artifactId>
-            <version>21</version>
+            <groupId>me.friwi</groupId>
+            <artifactId>jcefmaven</artifactId>
+            <version>146.0.10</version>
         </dependency>
 
         <dependency>
@@ -189,9 +183,16 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <jvmArguments>
+                        --add-opens java.desktop/sun.awt=ALL-UNNAMED
+                        --add-opens java.desktop/sun.lwawt=ALL-UNNAMED
+                        --add-opens java.desktop/sun.lwawt.macosx=ALL-UNNAMED
+                        --add-exports java.desktop/sun.awt=ALL-UNNAMED
+                        --add-exports java.desktop/sun.lwawt=ALL-UNNAMED
+                        --add-exports java.desktop/sun.lwawt.macosx=ALL-UNNAMED
+                    </jvmArguments>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
