@@ -1,0 +1,1 @@
+import{p as i}from"./chunk-4N6VE7H7-CyHFiJdt.js";import{c as o}from"./compiler-runtime-ClVvFZIk.js";import"./table-CfAcHV9m.js";const r=m=>{const t=o.c(2);let e;return t[0]!==m?(e=i.jsx("img",{...m}),t[0]=m,t[1]=e):e=t[1],e},n={Native:r};export{n as N};
