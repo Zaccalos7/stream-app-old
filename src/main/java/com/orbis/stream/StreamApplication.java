@@ -1,5 +1,6 @@
 package com.orbis.stream;
 
+import lombok.extern.slf4j.Slf4j;
 import me.friwi.jcefmaven.CefAppBuilder;
 import me.friwi.jcefmaven.CefInitializationException;
 import me.friwi.jcefmaven.UnsupportedPlatformException;
@@ -19,6 +20,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
+@Slf4j
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @SpringBootApplication
 public class StreamApplication {
@@ -67,7 +69,7 @@ public class StreamApplication {
 			frame.setVisible(true);
 
 		} catch (UnsupportedPlatformException | CefInitializationException | IOException | InterruptedException e) {
-			e.printStackTrace();
+			log.error("Error during creation of gui:", e.getCause());
 		}
 	}
 
@@ -75,6 +77,7 @@ public class StreamApplication {
 		try {
 			CefApp.getInstance().dispose();
 		} catch (Exception e) {
+			log.error("ERROR--->{}", e.getMessage(), e.getCause());
 		}
 		if (springContext != null) {
 			springContext.close();
