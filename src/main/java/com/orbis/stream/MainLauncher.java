@@ -1,6 +1,9 @@
+package com.orbis.stream;
+
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MainLauncher {
@@ -23,11 +26,9 @@ public class MainLauncher {
             command.add("--add-exports=java.desktop/sun.lwawt.macosx=ALL-UNNAMED");
             command.add("-cp");
             command.add(System.getProperty("java.class.path"));
-            command.add("MainLauncher");
+            command.add("com.orbis.stream.MainLauncher");
 
-            for (String arg : args) {
-                command.add(arg);
-            }
+            Collections.addAll(command, args);
 
             ProcessBuilder builder = new ProcessBuilder(command);
             builder.inheritIO();
