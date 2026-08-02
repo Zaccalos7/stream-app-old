@@ -34,7 +34,7 @@ public class StreamApplication {
 	private static void createAndShowGUI(ConfigurableApplicationContext springContext) {
 		try {
 			CefAppBuilder cefAppBuilder = new CefAppBuilder();
-			cefAppBuilder.setInstallDir(new File("jcef-bundle"));
+			cefAppBuilder.setInstallDir(new File(System.getProperty("user.home"), ".orbis-stream/jcef-bundle"));
 			cefAppBuilder.getCefSettings().log_severity = org.cef.CefSettings.LogSeverity.LOGSEVERITY_DISABLE;
 
 			CefApp cefApp = cefAppBuilder.build();
