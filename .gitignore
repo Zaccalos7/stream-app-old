@@ -41,3 +41,5 @@ stream.db
 
 images
 jcef-bundle/
+
+node_modules/
