@@ -52,7 +52,7 @@ public class StreamApplication {
 			cefApp = cefAppBuilder.build();
 			CefClient cefClient = cefApp.createClient();
 
-			CefBrowser browser = cefClient.createBrowser("http://localhost:1200/orbis/handler", false, false);
+			CefBrowser browser = cefClient.createBrowser("http://localhost:1200/orbis/mainMenu", false, false);
 			Component browserUI = browser.getUIComponent();
 
 			JFrame frame = new JFrame("Orbis Stream");
