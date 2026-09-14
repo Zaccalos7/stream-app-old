@@ -15,6 +15,8 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -25,7 +27,14 @@ import java.io.IOException;
 @SpringBootApplication
 public class StreamApplication {
 
+	private static CefApp cefApp;
+
 	public static void main(String[] args) {
+		String os = System.getProperty("os.name").toLowerCase();
+		if (os.contains("nux") || os.contains("nix")) {
+			System.setProperty("sun.java2d.opengl", "false");
+		}
+
 		SpringApplicationBuilder builder = new SpringApplicationBuilder(StreamApplication.class);
 		builder.headless(false);
 		ConfigurableApplicationContext springContext = builder.run(args);
@@ -38,8 +47,9 @@ public class StreamApplication {
 			CefAppBuilder cefAppBuilder = new CefAppBuilder();
 			cefAppBuilder.setInstallDir(new File("jcef-bundle"));
 			cefAppBuilder.getCefSettings().log_severity = org.cef.CefSettings.LogSeverity.LOGSEVERITY_DISABLE;
+			cefAppBuilder.getCefSettings().windowless_rendering_enabled = false;
 
-			CefApp cefApp = cefAppBuilder.build();
+			cefApp = cefAppBuilder.build();
 			CefClient cefClient = cefApp.createClient();
 
 			CefBrowser browser = cefClient.createBrowser("http://localhost:1200/orbis/handler", false, false);
@@ -53,7 +63,7 @@ public class StreamApplication {
 			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 			cefClient.addLifeSpanHandler(new CefLifeSpanHandlerAdapter() {
-				public boolean doClose(CefClient client, CefBrowser browser) {
+				public boolean doClose(CefClient client, CefBrowser b) {
 					closeApplication(springContext, frame);
 					return true;
 				}
@@ -66,7 +76,17 @@ public class StreamApplication {
 				}
 			});
 
+			KeyStroke quitKey = KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+			frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(quitKey, "quit");
+			frame.getRootPane().getActionMap().put("quit", new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					closeApplication(springContext, frame);
+				}
+			});
+
 			frame.setVisible(true);
+			browserUI.requestFocusInWindow();
 
 		} catch (UnsupportedPlatformException | CefInitializationException | IOException | InterruptedException e) {
 			log.error("Error during creation of gui:", e.getCause());
@@ -75,7 +95,9 @@ public class StreamApplication {
 
 	private static void closeApplication(ConfigurableApplicationContext springContext, JFrame frame) {
 		try {
-			CefApp.getInstance().dispose();
+			if (cefApp != null) {
+				cefApp.dispose();
+			}
 		} catch (Exception e) {
 			log.error("ERROR--->{}", e.getMessage(), e.getCause());
 		}
