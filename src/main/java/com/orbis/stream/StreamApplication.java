@@ -24,7 +24,7 @@ import java.io.IOException;
 
 @Slf4j
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
-@SpringBootApplication
+//@SpringBootApplication
 public class StreamApplication {
 
 	private static CefApp cefApp;
