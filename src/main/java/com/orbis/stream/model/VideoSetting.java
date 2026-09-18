@@ -34,6 +34,7 @@ public class VideoSetting {
     @ColumnDefault("False")
     private Boolean isDefaultConfiguration;
 
+    @ColumnDefault("Custom")
     private String defaultPlatformConfiguration;
 
     @NotNull
