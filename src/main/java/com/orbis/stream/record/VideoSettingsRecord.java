@@ -15,6 +15,8 @@ public record VideoSettingsRecord(
         Integer gopSize,
         VideoOptionRecord[] videoOptions,
         String videoFormat,
-        AudioSettingsRecord audioSettingRecord
+        AudioSettingsRecord audioSettingRecord,
+        Boolean isDefaultConfiguration,
+        String defaultPlatformConfiguration
 ) {
 }

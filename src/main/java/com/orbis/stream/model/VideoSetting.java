@@ -31,11 +31,15 @@ public class VideoSetting {
     private String videoFormat;
     private LocalDateTime lastModified;
 
+    @ColumnDefault("False")
+    private Boolean isDefaultConfiguration;
+
+    @ColumnDefault("Custom")
+    private String defaultPlatformConfiguration;
+
     @NotNull
     @ColumnDefault("2")
     private Integer gopSize;
-
-
 
     @NotNull
     @ColumnDefault("False")
