@@ -13,7 +13,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
  * every times (and copy on static folder)
  */
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
-@SpringBootApplication
+//@SpringBootApplication
 public class RunnerForDevelopApplication {
 
     public static void main(String[] args) {
