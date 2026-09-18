@@ -1,0 +1,1 @@
+import{s as r}from"./serverLink-CVTOj5L6.js";const c=async({request:s})=>{const e=await s.formData(),t=e.get("intent"),i=e.get("videoLivePkid");if(t==="stopLive"){const o=await fetch(`${r}live/stop-live?videoLivePkid=${i}`,{method:"PUT"}).then(n=>n.json());return{message:o.message,success:o.response}}return console.error("Not valid intent:",t),{}};export{c as clientAction};
