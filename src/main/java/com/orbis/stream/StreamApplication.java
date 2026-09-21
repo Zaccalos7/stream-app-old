@@ -47,12 +47,12 @@ public class StreamApplication {
 			CefAppBuilder cefAppBuilder = new CefAppBuilder();
 			cefAppBuilder.setInstallDir(new File(System.getProperty("user.home"), ".orbis-stream/jcef-bundle"));
 			cefAppBuilder.getCefSettings().log_severity = org.cef.CefSettings.LogSeverity.LOGSEVERITY_DISABLE;
-			cefAppBuilder.getCefSettings().windowless_rendering_enabled = false;
+			cefAppBuilder.getCefSettings().windowless_rendering_enabled = true;
 
 			cefApp = cefAppBuilder.build();
 			CefClient cefClient = cefApp.createClient();
 
-			CefBrowser browser = cefClient.createBrowser("http://localhost:1200/orbis/mainMenu", false, false);
+			CefBrowser browser = cefClient.createBrowser("http://localhost:1200/orbis/mainMenu", true, false);
 			Component browserUI = browser.getUIComponent();
 
 			JFrame frame = new JFrame("Orbis Stream");
