@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ReactController {
 
+    @GetMapping("/")
+    public String redirectToMainMenu() {
+        return "redirect:/orbis/mainMenu";
+    }
+
     @GetMapping(value = {
             "/{path:[^\\.]*}",
             "/**/{path:[^\\.]*}"
