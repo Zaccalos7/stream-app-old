@@ -1,0 +1,201 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging.Abstractions;
+using Orbis.Stream.Core.Hosting;
+using Orbis.Stream.Core.Data;
+using Orbis.Stream.Core.Domain;
+
+namespace Orbis.Stream.Tests;
+
+public sealed class LiveStatusTests
+{
+    [Fact]
+    public void Ordinals_MatchTheHibernateColumnOfTheJavaEntity()
+    {
+        Assert.Equal(0, (int)LiveStatus.Live);
+        Assert.Equal(1, (int)LiveStatus.Offline);
+        Assert.Equal(2, (int)LiveStatus.Ended);
+        Assert.Equal(3, (int)LiveStatus.Error);
+        Assert.Equal(4, (int)LiveStatus.Stopped);
+    }
+
+    [Theory]
+    [InlineData(0, LiveStatus.Live)]
+    [InlineData(1, LiveStatus.Offline)]
+    [InlineData(2, LiveStatus.Ended)]
+    [InlineData(3, LiveStatus.Error)]
+    [InlineData(4, LiveStatus.Stopped)]
+    public void FromStorage_ReadsTheHibernateOrdinal(object value, LiveStatus expected)
+    {
+        Assert.Equal(expected, LiveStatusExtensions.FromStorage(value));
+    }
+
+    [Theory]
+    [InlineData("LIVE", LiveStatus.Live)]
+    [InlineData("stopped", LiveStatus.Stopped)]
+    [InlineData("2", LiveStatus.Ended)]
+    public void FromStorage_AlsoReadsTheWireNameAndTheOrdinalAsText(string value, LiveStatus expected)
+    {
+        Assert.Equal(expected, LiveStatusExtensions.FromStorage(value));
+    }
+
+    [Fact]
+    public void FromStorage_FallsBackToOfflineForUnknownValues()
+    {
+        Assert.Equal(LiveStatus.Offline, LiveStatusExtensions.FromStorage(null));
+        Assert.Equal(LiveStatus.Offline, LiveStatusExtensions.FromStorage("whatever"));
+        Assert.Equal(LiveStatus.Offline, LiveStatusExtensions.FromStorage(99));
+    }
+
+    [Fact]
+    public void VideoExtensions_AcceptTheSupportedContainers()
+    {
+        foreach (var extension in new[] { "mp4", "flv", "mov", "webm", "vp9", "mkv" })
+        {
+            Assert.True(VideoExtensions.IsVideoExtensionPresent(extension));
+            Assert.True(VideoExtensions.IsVideoExtensionPresent(extension.ToUpperInvariant()));
+        }
+
+        Assert.False(VideoExtensions.IsVideoExtensionPresent("avi"));
+        Assert.False(VideoExtensions.IsVideoExtensionPresent(""));
+        Assert.False(VideoExtensions.IsVideoExtensionPresent(null));
+    }
+}
+
+public sealed class PageRequestTests
+{
+    private static PageRequest Parse(string queryString) =>
+        PageRequest.Parse(new QueryCollection(QueryHelpers.ParseQuery(queryString)), 20, "pkid", true);
+
+    [Fact]
+    public void Parse_UsesTheDefaultPageSizeAndSort()
+    {
+        var page = Parse(string.Empty);
+
+        Assert.Equal(0, page.Page);
+        Assert.Equal(20, page.Size);
+        Assert.Equal("pkid", Assert.Single(page.Sorts).Property);
+        Assert.True(page.Sorts[0].Descending);
+    }
+
+    [Theory]
+    [InlineData("?page=3&size=50", 3, 50)]
+    [InlineData("?page=-1&size=0", 0, 1)]
+    [InlineData("?page=abc&size=abc", 0, 20)]
+    [InlineData("?size=2500", 0, PageRequest.MaxSize)]
+    public void Parse_ClampsThePagingParameters(string query, int expectedPage, int expectedSize)
+    {
+        var page = Parse(query);
+
+        Assert.Equal(expectedPage, page.Page);
+        Assert.Equal(expectedSize, page.Size);
+    }
+
+    [Fact]
+    public void Parse_ReadsTheSpringSortSyntax()
+    {
+        Assert.Equal(
+            [("name", false), ("pkid", true)],
+            Parse("?sort=name,asc,pkid,desc").Sorts
+                .Select(sort => (sort.Property, sort.Descending)));
+    }
+
+    [Fact]
+    public void SpringPageMetadata_IsConsistentWithTheContent()
+    {
+        var page = SpringPageFactory.Create(
+            new PagedResult<string>(["a", "b"], 0, 2, 5),
+            [new SortOrder("pkid", true)]);
+
+        Assert.Equal(2, page.Page.Size);
+        Assert.Equal(0, page.Page.Number);
+        Assert.Equal(5, page.Page.TotalElements);
+        Assert.Equal(3, page.Page.TotalPages);
+        Assert.Equal(2, page.Page.NumberOfElements);
+        Assert.True(page.Page.First);
+        Assert.False(page.Page.Last);
+        Assert.False(page.Page.Empty);
+        Assert.True(page.Page.Sort.Sorted);
+        Assert.Equal("pkid", Assert.Single(page.Page.Sort.Sort).Property);
+        Assert.Equal("DESC", page.Page.Sort.Sort[0].Direction);
+
+        var last = SpringPageFactory.Create(new PagedResult<string>(["e"], 2, 2, 5), []);
+        Assert.True(last.Page.Last);
+    }
+}
+
+public sealed class FilterValueConverterTests
+{
+    [Fact]
+    public void Convert_ParsesTheSupportedKinds()
+    {
+        Assert.Equal("text", FilterValueConverter.Convert(FilterKind.Text, "text"));
+        Assert.Equal(42, FilterValueConverter.Convert(FilterKind.Integer, "42"));
+        Assert.Equal(9_000_000_000L, FilterValueConverter.Convert(FilterKind.Long, "9000000000"));
+        Assert.Equal(true, FilterValueConverter.Convert(FilterKind.Boolean, "true"));
+        Assert.Equal(LiveStatus.Stopped, FilterValueConverter.Convert(FilterKind.LiveStatus, "STOPPED"));
+        Assert.Equal(LiveStatus.Live, FilterValueConverter.Convert(FilterKind.LiveStatus, "0"));
+    }
+
+    [Theory]
+    [InlineData(FilterKind.Integer, "not-a-number")]
+    [InlineData(FilterKind.Long, "not-a-number")]
+    [InlineData(FilterKind.Boolean, "maybe")]
+    public void Convert_ThrowsTheOrbisQueryExceptionOfTheDynamicSpecification(FilterKind kind, string value)
+    {
+        Assert.Throws<OrbisQueryException>(() => FilterValueConverter.Convert(kind, value));
+    }
+}
+
+public sealed class DatabaseBootstrapperTests
+{
+    [Fact]
+    public void StartAsync_CreatesOneDefaultConfigurationPerPlatform()
+    {
+        using var database = new TemporaryDatabase();
+        var settings = database.Repository<VideoSettingRepository>();
+
+        var twitch = Assert.Single(settings.FindByIsDefaultConfigurationTrueAndDefaultPlatformConfiguration("Twitch"));
+        var youtube = Assert.Single(settings.FindByIsDefaultConfigurationTrueAndDefaultPlatformConfiguration("Youtube"));
+
+        Assert.Equal("libx264", twitch.VideoCodecName);
+        Assert.Equal(27, twitch.VideoCodec);
+        Assert.Equal(5_000_000, twitch.VideoBitrate);
+        Assert.Equal("flv", twitch.VideoFormat);
+        Assert.Equal(2, twitch.GopSize);
+        Assert.Equal(86018, twitch.AudioSetting!.AudioCodec);
+        Assert.Equal(128_000, twitch.AudioSetting.AudioBitrate);
+        Assert.NotEqual(twitch.Id, youtube.Id);
+    }
+
+    [Fact]
+    public async Task StartAsync_KeepsASingleDefaultConfigurationPerPlatform()
+    {
+        using var database = new TemporaryDatabase();
+        var bootstrapper = new DatabaseBootstrapper(
+            database.ConnectionFactory,
+            database.Repository<VideoSettingRepository>(),
+            NullLogger<DatabaseBootstrapper>.Instance);
+
+        var duplicates = database.Repository<VideoSettingRepository>().Insert(new VideoSettingEntity
+        {
+            Title = "Twitch",
+            VideoCodec = 27,
+            VideoCodecName = "libx264",
+            PixelFormat = 0,
+            VideoBitrate = 5_000_000,
+            VideoFormat = "flv",
+            GopSize = 2,
+            IsVideoAndAudioSettingActive = true,
+            IsDefaultConfiguration = true,
+            DefaultPlatformConfiguration = "Twitch"
+        });
+
+        await bootstrapper.StartAsync(CancellationToken.None);
+
+        var twitch = database.Repository<VideoSettingRepository>()
+            .FindByIsDefaultConfigurationTrueAndDefaultPlatformConfiguration("Twitch");
+        Assert.Single(twitch);
+        Assert.NotEqual(duplicates, Assert.Single(twitch).Id);
+    }
+}

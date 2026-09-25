@@ -1,7 +1,15 @@
+# Build output
+bin/
+obj/
+target/
+publish/
+artifacts/
+*.user
+
+# IDE
 HELP.md
 mvnw.cmd
 mvnw
-target/
 .mvn/wrapper/maven-wrapper.jar
 .mvn/wrapper/maven-wrapper.properties
 !**/src/main/**/target/
@@ -27,7 +35,7 @@ target/
 /nbbuild/
 /dist/
 /nbdist/
-/.nb-gradle/
+/nb-gradle/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -35,10 +43,17 @@ build/
 ### VS Code ###
 .vscode/
 
-## .env
-.env
-stream.db
+# macOS
+.DS_Store
 
-images
-jcef-bundle/
-electron-app/node_modules
+# .env
+.env
+
+# Runtime data of Orbis Stream (see OrbisRuntimeOptions)
+stream.db
+stream.db-shm
+stream.db-wal
+logs/
+images/
+webview2/
+data/
