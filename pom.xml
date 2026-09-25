@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.orbis</groupId>
     <artifactId>stream</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>stream-app</name>
     <description>stream app for all os</description>
