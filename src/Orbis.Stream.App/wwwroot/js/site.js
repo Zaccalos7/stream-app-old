@@ -45,3 +45,13 @@ for (const counter of document.querySelectorAll("[data-countdown]")) {
 
 // <dialog data-open>: dialogs the server rendered for an edit (?edit=, ?link=) open as modal.
 for (const dialog of document.querySelectorAll("dialog[data-open]")) dialog.showModal();
+
+// <input type="radio" data-stream-url="rtmp://…">: picking a platform fills its form's streamUrl,
+// unless the user typed a custom ingest (anything that is not one of the platform presets).
+document.addEventListener("change", event => {
+  const url = event.target.dataset?.streamUrl;
+  if (!url) return;
+  const field = event.target.form.elements.streamUrl;
+  const presets = [...event.target.form.querySelectorAll("[data-stream-url]")].map(radio => radio.dataset.streamUrl);
+  if (!field.value.trim() || presets.includes(field.value.trim())) field.value = url;
+});
