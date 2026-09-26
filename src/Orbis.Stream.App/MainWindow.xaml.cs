@@ -49,15 +49,23 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
+            LoadingBar.Visibility = Visibility.Collapsed;
             StatusText.Text = $"Impossibile inizializzare il browser: {exception.Message}";
         }
     }
 
     private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
     {
-        StatusText.Visibility = e.IsSuccess ? Visibility.Collapsed : Visibility.Visible;
-        if (!e.IsSuccess)
+        if (e.IsSuccess)
         {
+            Browser.Visibility = Visibility.Visible;
+            Splash.Visibility = Visibility.Collapsed;
+        }
+        else if (Browser.Visibility != Visibility.Visible)
+        {
+            // Only the first load reports on the splash: once the app is visible, a failed or
+            // cancelled navigation (a quick double click) must not hide it again.
+            LoadingBar.Visibility = Visibility.Collapsed;
             StatusText.Text = $"Il browser non riesce a raggiungere {_options.ApplicationUrl}.";
         }
     }
