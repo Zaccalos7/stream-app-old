@@ -10,7 +10,7 @@ namespace Orbis.Stream.App;
 
 /// <summary>
 /// Desktop shell of the ported application: it starts the ASP.NET Core host in-process and
-/// shows the unchanged React build inside WebView2, exactly like the JCEF window did.
+/// shows its Razor pages inside WebView2, like the JCEF window of the Java version did.
 /// </summary>
 public partial class App : Application
 {

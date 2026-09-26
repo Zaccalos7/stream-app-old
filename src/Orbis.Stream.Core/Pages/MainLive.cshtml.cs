@@ -1,0 +1,163 @@
+using Microsoft.AspNetCore.Mvc;
+using Orbis.Stream.Core.Contracts;
+using Orbis.Stream.Core.Data;
+using Orbis.Stream.Core.Hosting;
+using Orbis.Stream.Core.I18n;
+using Orbis.Stream.Core.Services;
+
+namespace Orbis.Stream.Core.Pages;
+
+public sealed class MainLiveModel(
+    VideoService videos,
+    SettingService settings,
+    VideoSettingService videoSettings,
+    StreamingService streaming,
+    RequestValidator validator,
+    Localizer localizer) : OrbisPageModel
+{
+    public const int PageSize = 10;
+
+    [BindProperty(SupportsGet = true)]
+    public string? LiveStatus { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? ChannelName { get; set; }
+
+    /// <summary>Zero-based page (<c>page</c> is a reserved route value in Razor Pages).</summary>
+    [BindProperty(SupportsGet = true, Name = "p")]
+    public int PageIndex { get; set; }
+
+    public SpringPage<VideoRequest> Videos { get; private set; } = null!;
+
+    public IReadOnlyCollection<string> Channels { get; private set; } = [];
+
+    public IReadOnlyList<ChannelResponse> Locked { get; private set; } = [];
+
+    public IReadOnlyList<VideoSettingsRequest> ActiveSettings { get; private set; } = [];
+
+    public IReadOnlyList<SettingResponse> ActiveConfigurations { get; private set; } = [];
+
+    /// <summary>Video whose setting is being linked (<c>?link={pkid}</c>).</summary>
+    public int? LinkPkid { get; private set; }
+
+    [BindProperty]
+    public VideoSettingForm? Form { get; set; }
+
+    public object Filters => new { LiveStatus, ChannelName, p = PageIndex };
+
+    /// <summary>Same filters as route data of the row forms, so every action comes back to the same view.</summary>
+    public Dictionary<string, string> FilterRoute => new()
+    {
+        ["liveStatus"] = LiveStatus ?? string.Empty,
+        ["channelName"] = ChannelName ?? string.Empty,
+        ["p"] = PageIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)
+    };
+
+    public void OnGet(int? link)
+    {
+        LoadVideos();
+        Channels = settings.RetrieveChannel(new Dictionary<string, string>());
+        Locked = videos.GetLockedVideos();
+        ActiveSettings = videoSettings.GetAllVideoSettings(new Dictionary<string, string> { ["isVideoAndAudioSettingActive"] = "true" });
+        ActiveConfigurations = settings.RetrieveSettings(new Dictionary<string, string> { ["isActive"] = "true" });
+
+        if (link is not null)
+        {
+            LinkPkid = link;
+            Form = new VideoSettingForm();
+        }
+    }
+
+    public PartialViewResult OnGetRows()
+    {
+        LoadVideos();
+        return Partial("_LiveRows", this);
+    }
+
+    public IActionResult OnPostStop(int pkid)
+    {
+        Try(() =>
+        {
+            streaming.StopVideoStreamingByPkid(pkid);
+            SetNotice(NoticeKind.Success, localizer.PrintMessage("live.stopped"));
+            return true;
+        });
+        return RedirectToPage(Filters);
+    }
+
+    /// <summary>Play and restart of a card: streams again the videos of the same live history.</summary>
+    public IActionResult OnPostReplay(int pkid)
+    {
+        Try(() =>
+        {
+            var video = videos.FindVideo(pkid);
+            validator.RequireVideo(video);
+            return Run(() => streaming.StartVideo(video));
+        });
+        return RedirectToPage(Filters);
+    }
+
+    public IActionResult OnPostUnlock(int videoKey)
+    {
+        Run(() => videos.UnlockVideo(videoKey));
+        return RedirectToPage(Filters);
+    }
+
+    public IActionResult OnPostLink(int pkid)
+    {
+        if (Form is null || !Form.IsComplete)
+        {
+            SetNotice(NoticeKind.Error, localizer.PrintMessage("not.valid.input"));
+        }
+        else
+        {
+            Run(() => videoSettings.LinkAndSaveSettingsVideo(Form.ToRequest(), pkid));
+        }
+
+        return RedirectToPage(Filters);
+    }
+
+    /// <summary>The wizard: one active video setting plus one active streaming configuration.</summary>
+    public IActionResult OnPostStart(int settingId, int configurationId)
+    {
+        var setting = videoSettings.GetAllVideoSettings(new Dictionary<string, string> { ["id"] = settingId.ToString(System.Globalization.CultureInfo.InvariantCulture) }).FirstOrDefault();
+        var configuration = settings.RetrieveSettings(new Dictionary<string, string> { ["id"] = configurationId.ToString(System.Globalization.CultureInfo.InvariantCulture) }).FirstOrDefault();
+        if (setting is null || configuration is null)
+        {
+            SetNotice(NoticeKind.Error, localizer.PrintMessage("not.valid.input"));
+            return RedirectToPage(Filters);
+        }
+
+        var request = new StartLiveRequest(
+            configuration.StreamUrl,
+            configuration.StreamKey,
+            configuration.VideoFolder,
+            configuration.PlatformStreamName,
+            configuration.ChannelName,
+            setting);
+
+        var started = Try(() =>
+        {
+            validator.RequireStartLive(request);
+            return Run(() => streaming.StartLive(request));
+        });
+
+        return started ? RedirectToPage("/Countdown") : RedirectToPage(Filters);
+    }
+
+    private void LoadVideos()
+    {
+        var filters = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!string.IsNullOrEmpty(LiveStatus))
+        {
+            filters["liveStatus"] = LiveStatus;
+        }
+
+        if (!string.IsNullOrEmpty(ChannelName))
+        {
+            filters["channelName"] = ChannelName;
+        }
+
+        Videos = videos.GetAllVideoList(filters, new PageRequest(Math.Max(PageIndex, 0), PageSize, [new SortOrder("startDateLive", true)]));
+    }
+}

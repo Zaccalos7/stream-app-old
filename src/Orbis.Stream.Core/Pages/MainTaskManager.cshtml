@@ -1,0 +1,15 @@
+@page "/orbis/mainTaskManager"
+@model MainTaskManagerModel
+@{
+    ViewData["Title"] = T["taskManager"];
+}
+<div class="page-header">
+    <div>
+        <h1>@T["taskManager"]</h1>
+        <p class="subtitle">@T["taskManagerDescription"]</p>
+    </div>
+</div>
+
+<div data-refresh="?handler=Stats" data-interval="5000">
+    <partial name="_Stats" model="Model" />
+</div>

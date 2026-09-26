@@ -199,3 +199,32 @@ public sealed class DatabaseBootstrapperTests
         Assert.NotEqual(duplicates, Assert.Single(twitch).Id);
     }
 }
+
+public sealed class FfmpegCodecCatalogTests
+{
+    // The database stores FFmpeg enum values (AV_PIX_FMT_*, AV_CODEC_ID_*): the names must match them.
+    [Theory]
+    [InlineData(0, "yuv420p")]
+    [InlineData(1, "yuyv422")]
+    [InlineData(4, "yuv422p")]
+    [InlineData(23, "nv12")]
+    [InlineData(null, "yuv420p")]
+    public void PixelFormats_FollowTheFfmpegEnum(int? id, string expected) =>
+        Assert.Equal(expected, FfmpegCodecCatalog.ResolvePixelFormat(id));
+
+    [Theory]
+    [InlineData(86017, "libmp3lame")]
+    [InlineData(86018, "aac")]
+    [InlineData(86019, "ac3")]
+    [InlineData(86076, "libopus")]
+    [InlineData(null, "aac")]
+    public void AudioCodecs_FollowTheFfmpegEnum(int? id, string expected) =>
+        Assert.Equal(expected, FfmpegCodecCatalog.ResolveAudioCodecName(id));
+
+    [Fact]
+    public void VideoCodecName_WinsOverTheNumericCodec()
+    {
+        Assert.Equal("h264_nvenc", FfmpegCodecCatalog.ResolveVideoCodecName(27, "h264_nvenc"));
+        Assert.Equal("libx265", FfmpegCodecCatalog.ResolveVideoCodecName(173, null));
+    }
+}

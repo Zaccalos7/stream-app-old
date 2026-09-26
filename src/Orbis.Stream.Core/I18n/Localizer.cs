@@ -5,12 +5,15 @@ namespace Orbis.Stream.Core.I18n;
 
 /// <summary>
 /// Port of <c>LoggerMessageComponent</c> + <c>LocaleChangeInterceptor</c>: resolves the request
-/// language (<c>?lang=</c> first, then <c>Accept-Language</c>, then the Spring default <c>en</c>)
+/// language (<c>?lang=</c> first, then the language chosen in the pages (cookie), then <c>Accept-Language</c>, then the Spring default <c>en</c>)
 /// and formats message codes.
 /// </summary>
 public sealed class Localizer
 {
     public const string LanguageQueryParameter = "lang";
+
+    /// <summary>Written by the language selector of the Razor pages.</summary>
+    public const string LanguageCookie = "orbis-lang";
 
     private readonly MessageCatalog _catalog;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -35,6 +38,11 @@ public sealed class Localizer
                 && !string.IsNullOrWhiteSpace(requested))
             {
                 return _catalog.ResolveLanguage(requested);
+            }
+
+            if (context.Request.Cookies.TryGetValue(LanguageCookie, out var chosen) && !string.IsNullOrWhiteSpace(chosen))
+            {
+                return _catalog.ResolveLanguage(chosen);
             }
 
             var acceptLanguage = context.Request.Headers.AcceptLanguage.FirstOrDefault();

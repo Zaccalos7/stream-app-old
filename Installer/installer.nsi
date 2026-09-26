@@ -16,7 +16,7 @@ Unicode true
 !include "x64.nsh"
 
 !ifndef APPVERSION
-  !define APPVERSION "1.0.0"
+  !define APPVERSION "1.0.1"
 !endif
 !ifndef PUBLISHDIR
   !define PUBLISHDIR "..\artifacts\publish"
@@ -109,6 +109,9 @@ Function .onInit
 FunctionEnd
 
 Section "Application" SecMain
+  ; The web root holds only application files: drop the previous one so an upgrade does not
+  ; keep stale assets (e.g. the React build of the versions before the Razor pages).
+  RMDir /r "$INSTDIR\wwwroot"
   SetOutPath "$INSTDIR"
   File /r "${PUBLISHDIR}\*"
 

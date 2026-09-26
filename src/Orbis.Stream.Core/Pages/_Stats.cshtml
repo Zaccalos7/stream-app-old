@@ -1,0 +1,33 @@
+@model MainTaskManagerModel
+@{
+    // Same labels and thresholds as the React cards: green below 40, amber below 75, red above.
+    (string Glyph, string Label, string Unit)[] meta =
+    [
+        ("\uE950", "CPU", "%"),
+        ("\uE964", "RAM", "%"),
+        ("\uEDA2", "SWAP", "%"),
+        ("\uE9CA", T["TEMPERATURA_CPU"], "°C")
+    ];
+}
+<div class="grid">
+    @for (var index = 0; index < meta.Length; index++)
+    {
+        var (glyph, label, unit) = meta[index];
+        var value = index < Model.Stats.Count ? Model.Stats[index].Value : 0;
+        // The providers answer -1 (0 for the temperature) when a value is not available.
+        var available = index < Model.Stats.Count && value >= 0 && (unit == "%" || value > 0);
+        var level = value < 40 ? "" : value < 75 ? "warn" : "bad";
+        <div class="card meter">
+            <h3><i class="icon">@glyph</i>&nbsp; @label</h3>
+            @if (available)
+            {
+                <div class="ring @level" style="--value: @Math.Clamp(value, 0, 100)" data-label="@value@unit" role="img" aria-label="@label @value@unit"></div>
+            }
+            else
+            {
+                <div class="ring" data-label="–"></div>
+                <span class="caption">@T["noDataPresent"]</span>
+            }
+        </div>
+    }
+</div>

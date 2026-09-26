@@ -1,112 +1,102 @@
 namespace Orbis.Stream.Core.Domain;
 
-/// <summary>Maps the JavaCV/FFmpeg numeric identifiers stored in the database to ffmpeg names.</summary>
+/// <summary>One selectable value: the number stored in the database, the label shown, the ffmpeg name.</summary>
+public sealed record MediaOption(int Id, string Label, string FfmpegName);
+
+/// <summary>
+/// Maps the FFmpeg enum values stored in the database (<c>AV_CODEC_ID_*</c>, <c>AV_PIX_FMT_*</c>,
+/// the numbers the JavaCV version and the React client wrote) to ffmpeg names. The same lists
+/// feed the selects of the video settings page, so what the user picks is what ffmpeg receives.
+/// </summary>
 public static class FfmpegCodecCatalog
 {
-    // org.bytedeco.javacv.FFmpegFrameRecorder AV_CODEC_ID_* values.
-    private static readonly Dictionary<int, string> VideoCodecs = new()
-    {
-        [0] = "mpeg1video",
-        [1] = "mpeg2video",
-        [2] = "h261",
-        [3] = "h263",
-        [4] = "rv10",
-        [5] = "rv20",
-        [6] = "mjpeg",
-        [7] = "mjpegb",
-        [8] = "ljpeg",
-        [9] = "sp5x",
-        [10] = "jpegls",
-        [12] = "wmv1",
-        [13] = "wmv2",
-        [14] = "vc1",
-        [16] = "h264",
-        [17] = "h264",
-        [18] = "mpeg4",
-        [19] = "mpeg4",
-        [20] = "h263p",
-        [25] = "theora",
-        [26] = "mpeg2video",
-        [27] = "h264",
-        [28] = "libvpx",
-        [30] = "libtheora",
-        [31] = "h264",
-        [32] = "libxvid",
-        [33] = "mpeg4",
-        [39] = "libxvid",
-        [40] = "libx264",
-        [46] = "flv",
-        [69] = "mpeg4",
-        [71] = "vp3",
-        [73] = "vp6f",
-        [85] = "vp6a",
-        [92] = "wmv3",
-        [121] = "libvpx-vp9",
-        [173] = "libaom-av1",
-        [176] = "h264",
-        [177] = "hevc",
-        [178] = "hevc",
-        [192] = "vp9",
-        [225] = "prores"
-    };
+    public static readonly IReadOnlyList<MediaOption> VideoCodecs =
+    [
+        new(2, "MPEG2VIDEO", "mpeg2video"),
+        new(12, "MPEG4", "mpeg4"),
+        new(4, "H263", "h263"),
+        new(21, "FLV1", "flv"),
+        new(27, "H264", "libx264"),
+        new(173, "H265 / HEVC", "libx265"),
+        new(30, "THEORA", "libtheora"),
+        new(70, "VC1", "vc1"),
+        new(71, "WMV3", "wmv2"),
+        new(139, "VP8", "libvpx"),
+        new(167, "VP9", "libvpx-vp9"),
+        new(225, "AV1", "libaom-av1"),
+        new(7, "MJPEG", "mjpeg"),
+        new(61, "PNG (video)", "png"),
+        new(24, "DVVIDEO", "dvvideo"),
+        new(25, "HUFFYUV", "huffyuv"),
+        new(33, "FFV1 (lossless)", "ffv1"),
+        new(147, "PRORES", "prores_ks"),
+        new(99, "DNXHD", "dnxhd"),
+        new(43, "CINEPAK", "cinepak"),
+        new(28, "INDEO3", "indeo3"),
+        new(116, "DIRAC", "vc2"),
+        new(91, "VP6", "vp6"),
+        new(92, "VP6F", "vp6f"),
+        new(171, "WEBP (video)", "libwebp")
+    ];
 
-    // AV_CODEC_ID_AAC and the other audio identifiers used by the shipped defaults.
-    private static readonly Dictionary<int, string> AudioCodecs = new()
-    {
-        [0x11000] = "mp3",
-        [86018] = "aac",
-        [86019] = "aac",
-        [86020] = "ac3",
-        [86021] = "eac3",
-        [86023] = "vorbis",
-        [86026] = "flac",
-        [86028] = "libopus",
-        [86033] = "pcm_s16le",
-        [86037] = "alac"
-    };
+    public static readonly IReadOnlyList<MediaOption> AudioCodecs =
+    [
+        new(86016, "MP2", "mp2"),
+        new(86017, "MP3", "libmp3lame"),
+        new(86018, "AAC", "aac"),
+        new(86019, "AC3", "ac3"),
+        new(86020, "DTS", "dca"),
+        new(86021, "Vorbis", "libvorbis"),
+        new(86028, "FLAC", "flac"),
+        new(86032, "ALAC", "alac"),
+        new(86076, "Opus", "libopus"),
+        new(86056, "E-AC3 (Dolby Digital Plus)", "eac3"),
+        new(86060, "TrueHD", "truehd"),
+        new(86045, "MLP", "mlp"),
+        new(65536, "WAV (PCM S16LE)", "pcm_s16le"),
+        new(65548, "PCM S24LE", "pcm_s24le"),
+        new(65557, "PCM F32LE", "pcm_f32le"),
+        new(86024, "WMA v2", "wmav2"),
+        new(86053, "WMA Pro", "wmapro"),
+        new(86048, "APE", "ape"),
+        new(86044, "Musepack", "mpc8"),
+        new(73728, "AMR-NB", "libopencore_amrnb"),
+        new(73729, "AMR-WB", "libvo_amrwbenc")
+    ];
 
-    // AV_PIX_FMT_* values that can be expressed as an ffmpeg -pix_fmt name.
-    private static readonly Dictionary<int, string> PixelFormats = new()
-    {
-        [0] = "yuv420p",
-        [1] = "rgb24",
-        [2] = "bgr24",
-        [3] = "yuv422p",
-        [4] = "yuv444p",
-        [5] = "yuyv422",
-        [6] = "yvyu422",
-        [7] = "uyvy422",
-        [8] = "gray",
-        [9] = "monob",
-        [10] = "monow",
-        [11] = "pal8",
-        [12] = "yuv420p",
-        [13] = "yuv422p",
-        [14] = "yuv444p",
-        [15] = "yuv410p",
-        [16] = "yuv411p",
-        [19] = "rgb565",
-        [20] = "rgb555",
-        [21] = "bgr565",
-        [23] = "nv12",
-        [25] = "nv21",
-        [26] = "yuyv422",
-        [27] = "uyvy422",
-        [30] = "yuv440p",
-        [33] = "yuvj422p",
-        [34] = "yuvj444p",
-        [35] = "yuva420p",
-        [36] = "yuva422p",
-        [37] = "yuva444p",
-        [38] = "argb",
-        [39] = "rgba",
-        [40] = "abgr",
-        [41] = "bgra",
-        [42] = "0rgb",
-        [43] = "rgb0",
-        [44] = "bgr0",
-        [45] = "0bgr"
-    };
+    public static readonly IReadOnlyList<MediaOption> PixelFormats = BuildPixelFormats(
+        "yuv420p", "yuyv422", "rgb24", "bgr24", "yuv422p", "yuv444p", "yuv410p", "yuv411p", "gray", "monow",
+        "monob", "pal8", "yuvj420p", "yuvj422p", "yuvj444p", "uyvy422", "uyyvyy411", "bgr8", "bgr4", "bgr4_byte",
+        "rgb8", "rgb4", "rgb4_byte", "nv12", "nv21", "argb", "rgba", "abgr", "bgra", "gray16be",
+        "gray16le", "yuv440p", "yuvj440p", "yuva420p", "rgb48be", "rgb48le", "rgb565be", "rgb565le", "rgb555be", "rgb555le",
+        "bgr565be", "bgr565le", "bgr555be", "bgr555le", "vaapi", "yuv420p16le", "yuv420p16be", "yuv422p16le", "yuv422p16be", "yuv444p16le",
+        "yuv444p16be", "dxva2_vld", "rgb444le", "rgb444be", "bgr444le", "bgr444be", "ya8");
+
+    public static readonly IReadOnlyList<string> VideoFormats = ["mp4", "mkv", "avi", "mov", "flv", "webm", "ts"];
+
+    /// <summary>Encoder names grouped by vendor, as the React form offered them.</summary>
+    public static readonly IReadOnlyList<(string Vendor, string[] Names)> VideoCodecNames =
+    [
+        ("CPU", ["libx264", "libx265", "libaom-av1", "libsvtav1", "libvpx", "libvpx-vp9", "mpeg4", "mjpeg", "prores_ks", "dnxhd", "ffv1", "huffyuv"]),
+        ("NVIDIA", ["h264_nvenc", "hevc_nvenc", "av1_nvenc"]),
+        ("AMD", ["h264_amf", "hevc_amf", "av1_amf"]),
+        ("Intel", ["h264_qsv", "hevc_qsv", "av1_qsv"]),
+        ("Apple", ["h264_videotoolbox", "hevc_videotoolbox"]),
+        ("VAAPI", ["h264_vaapi", "hevc_vaapi", "av1_vaapi"])
+    ];
+
+    public static readonly IReadOnlyList<string> Presets =
+        ["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"];
+
+    public static readonly IReadOnlyList<(string Value, string Label)> Tunes =
+    [
+        ("zerolatency", "Zero Latency"),
+        ("film", "Film"),
+        ("animation", "Animation"),
+        ("grain", "Grain"),
+        ("stillimage", "Still Image"),
+        ("fastdecode", "Fast Decode")
+    ];
 
     public static string ResolveVideoCodecName(int? videoCodec, string? videoCodecName)
     {
@@ -115,12 +105,7 @@ public static class FfmpegCodecCatalog
             return videoCodecName.Trim();
         }
 
-        if (videoCodec is not null && VideoCodecs.TryGetValue(videoCodec.Value, out var name))
-        {
-            return name;
-        }
-
-        return "libx264";
+        return Find(VideoCodecs, videoCodec) ?? "libx264";
     }
 
     public static string ResolveAudioCodecName(int? audioCodec, string? audioCodecName = null)
@@ -130,21 +115,14 @@ public static class FfmpegCodecCatalog
             return audioCodecName.Trim();
         }
 
-        if (audioCodec is not null && AudioCodecs.TryGetValue(audioCodec.Value, out var name))
-        {
-            return name;
-        }
-
-        return "aac";
+        return Find(AudioCodecs, audioCodec) ?? "aac";
     }
 
-    public static string ResolvePixelFormat(int? pixelFormat)
-    {
-        if (pixelFormat is not null && PixelFormats.TryGetValue(pixelFormat.Value, out var name))
-        {
-            return name;
-        }
+    public static string ResolvePixelFormat(int? pixelFormat) => Find(PixelFormats, pixelFormat) ?? "yuv420p";
 
-        return "yuv420p";
-    }
+    private static string? Find(IReadOnlyList<MediaOption> options, int? id) =>
+        id is null ? null : options.FirstOrDefault(option => option.Id == id.Value)?.FfmpegName;
+
+    private static MediaOption[] BuildPixelFormats(params string[] names) =>
+        names.Select((name, index) => new MediaOption(index, name.ToUpperInvariant(), name)).ToArray();
 }

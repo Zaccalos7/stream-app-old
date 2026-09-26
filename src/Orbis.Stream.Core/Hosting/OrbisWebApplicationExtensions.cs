@@ -13,11 +13,12 @@ using Swashbuckle.AspNetCore.Swagger;
 using Orbis.Stream.Core.Configuration;
 using Orbis.Stream.Core.Contracts;
 using Orbis.Stream.Core.Http;
+using Orbis.Stream.Core.I18n;
 
 namespace Orbis.Stream.Core.Hosting;
 
 /// <summary>
-/// Wires the Kestrel host, the React static resources, the exception middleware and the OpenAPI
+/// Wires the Kestrel host, the Razor pages and their static resources, the exception middleware and the OpenAPI
 /// document at the same paths the Spring application exposed.
 /// </summary>
 public static class OrbisWebApplicationExtensions
@@ -41,6 +42,9 @@ public static class OrbisWebApplicationExtensions
 
         builder.Services.AddOrbisStream(options);
         builder.Services.AddSingleton<RequestValidator>();
+        builder.Services.AddSingleton<UiText>();
+        // The pages live in this library, not in the entry assembly (the WPF shell or the tests).
+        builder.Services.AddRazorPages().AddApplicationPart(typeof(Pages.OrbisPageModel).Assembly);
         builder.Services.AddEndpointsApiExplorer();
         // The Java CorsConfiguration allowed any origin, method and header.
         builder.Services.AddCors();
@@ -84,29 +88,16 @@ public static class OrbisWebApplicationExtensions
             .AllowAnyMethod()
             .AllowAnyHeader());
 
+        // The stylesheet and the script are small and change with every release: always revalidate.
         app.UseStaticFiles(new StaticFileOptions
         {
             ServeUnknownFileTypes = false,
-            OnPrepareResponse = context =>
-            {
-                var isIndex = context.File.Name.Equals("index.html", StringComparison.OrdinalIgnoreCase);
-                var isAsset = context.Context.Request.Path.StartsWithSegments("/assets", StringComparison.OrdinalIgnoreCase);
-
-                if (isIndex)
-                {
-                    context.Context.Response.Headers.CacheControl = "no-cache";
-                }
-                else if (isAsset)
-                {
-                    context.Context.Response.Headers.CacheControl = "public,max-age=10368000,immutable";
-                }
-            }
+            OnPrepareResponse = context => context.Context.Response.Headers.CacheControl = "no-cache"
         });
 
         // springdoc served the document at /documentazione and the UI at /swagger-ui.html. The
         // document is written by an endpoint because the Swashbuckle middleware only answers when
-        // the route template contains the {documentName} placeholder, and the SPA fallback would
-        // swallow /documentazione with index.html.
+        // the route template contains the {documentName} placeholder.
         app.MapGet(OpenApiDocumentPath, (ISwaggerProvider provider) => Results.Text(
             provider.GetSwagger(OpenApiDocumentName).SerializeAsJson(OpenApiSpecVersion.OpenApi3_0),
             "application/json"));
@@ -120,11 +111,27 @@ public static class OrbisWebApplicationExtensions
 
         app.MapOrbisEndpoints();
 
-        // ReactController redirected the root to the main menu of the client side router.
+        // The pages keep the paths of the React router (basename /orbis).
         app.MapGet("/", () => Results.Redirect("/orbis/mainMenu"));
+        app.MapGet("/orbis", () => Results.Redirect("/orbis/mainMenu"));
+        app.MapGet("/orbis/lang/{code}", (string code, HttpContext context) =>
+        {
+            if (UiText.IsSupported(code))
+            {
+                context.Response.Cookies.Append(Localizer.LanguageCookie, code, new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddYears(10),
+                    SameSite = SameSiteMode.Lax,
+                    HttpOnly = true
+                });
+            }
 
-        // Same forwarding rules as the Java ReactController: every extensionless path serves the
-        // React entry point so the client side router can take over.
-        app.MapFallbackToFile("index.html");
+            // Back to the page that asked, never to another host.
+            var back = Uri.TryCreate(context.Request.Headers.Referer.ToString(), UriKind.Absolute, out var uri)
+                ? uri.PathAndQuery
+                : string.Empty;
+            return Results.Redirect(back.StartsWith("/orbis/", StringComparison.Ordinal) ? back : "/orbis/mainMenu");
+        });
+        app.MapRazorPages();
     }
 }

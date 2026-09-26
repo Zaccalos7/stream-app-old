@@ -12,6 +12,8 @@ namespace Orbis.Stream.Core.Services;
 public sealed class VideoService
 {
     private readonly VideoRepository _videoRepository;
+    private readonly VideoSettingRepository _videoSettingRepository;
+    private readonly VideoLiveHistoryRepository _videoLiveHistoryRepository;
     private readonly ResponseFactory _responses;
     private readonly Localizer _localizer;
     private readonly BackgroundTaskExecutor _executor;
@@ -19,12 +21,16 @@ public sealed class VideoService
 
     public VideoService(
         VideoRepository videoRepository,
+        VideoSettingRepository videoSettingRepository,
+        VideoLiveHistoryRepository videoLiveHistoryRepository,
         ResponseFactory responses,
         Localizer localizer,
         BackgroundTaskExecutor executor,
         ILogger<VideoService> logger)
     {
         _videoRepository = videoRepository;
+        _videoSettingRepository = videoSettingRepository;
+        _videoLiveHistoryRepository = videoLiveHistoryRepository;
         _responses = responses;
         _localizer = localizer;
         _executor = executor;
@@ -42,7 +48,34 @@ public sealed class VideoService
     {
         var result = _videoRepository.FindPaged(filters, page);
         _logger.LogInformation("{Message}", _localizer.PrintMessage("recovered.video"));
-        return SpringPageFactory.Create(Map(result, VideoRequest.FromEntity), page.Sorts);
+        return SpringPageFactory.Create(Map(result, WithRelations), page.Sorts);
+    }
+
+    /// <summary>One video with its live history and setting, the payload <c>/live/start-video-live</c> expects.</summary>
+    public VideoRequest FindVideo(int pkid) => WithRelations(FindVideoToUnlock(pkid));
+
+    /// <summary>Videos still marked LIVE, grouped by channel: the ones the unlock dialog can release.</summary>
+    public List<ChannelResponse> GetLockedVideos() =>
+        _videoRepository.FindByLiveStatus(LiveStatus.Live)
+            .GroupBy(video => video.ChannelName, StringComparer.Ordinal)
+            .Select(group => new ChannelResponse(
+                group.Key,
+                group.Select(video => new VideoPathAndKeyResponse(video.VideoPath, video.Pkid)).ToList()))
+            .ToList();
+
+    /// <summary>
+    /// The JPA entity serialized its live history and video setting: the cards need them to
+    /// show the platform, enable stop/restart, and replay a video (<c>/live/start-video-live</c>).
+    /// </summary>
+    private VideoRequest WithRelations(VideoEntity entity)
+    {
+        var history = entity.VideoLiveHistoryId is { } historyId ? _videoLiveHistoryRepository.FindByPkid(historyId) : null;
+        var setting = entity.VideoSettingId is { } settingId ? _videoSettingRepository.FindById(settingId) : null;
+        return VideoRequest.FromEntity(entity) with
+        {
+            VideoLiveHistory = history is null ? null : VideoLiveHistoryRequest.FromEntity(history),
+            VideoSetting = setting is null ? null : VideoSettingsRequest.FromEntity(setting)
+        };
     }
 
     private static PagedResult<TTarget> Map<TSource, TTarget>(

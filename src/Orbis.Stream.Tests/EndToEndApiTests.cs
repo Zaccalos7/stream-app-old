@@ -145,33 +145,78 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
     }
 
     [Fact]
-    public async Task StaticFiles_AreServedWithTheSpringCacheHeaders()
+    public async Task StaticFiles_AreAlwaysRevalidated()
     {
-        using var index = await _fixture.Client.GetAsync("/index.html");
-        Assert.Equal(HttpStatusCode.OK, index.StatusCode);
-        Assert.NotNull(index.Headers.CacheControl);
-        Assert.True(index.Headers.CacheControl!.NoCache);
+        var stylesheet = Path.Combine(_fixture.WebRootPath, "css", "fluent.css");
+        Directory.CreateDirectory(Path.GetDirectoryName(stylesheet)!);
+        await File.WriteAllTextAsync(stylesheet, "body{}");
 
-        var asset = Path.Combine(_fixture.WebRootPath, "assets", "app.js");
-        Directory.CreateDirectory(Path.GetDirectoryName(asset)!);
-        await File.WriteAllTextAsync(asset, "console.log(1)");
-
-        using var response = await _fixture.Client.GetAsync("/assets/app.js");
+        using var response = await _fixture.Client.GetAsync("/css/fluent.css");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.NotNull(response.Headers.CacheControl);
-        Assert.True(response.Headers.CacheControl!.Public);
-        Assert.Equal(TimeSpan.FromDays(120), response.Headers.CacheControl.MaxAge);
-        var extensions = response.Headers.GetValues("Cache-Control").ToList();
-        Assert.Contains(extensions, value => value.Contains("immutable", StringComparison.OrdinalIgnoreCase));
+        Assert.True(response.Headers.CacheControl!.NoCache);
+    }
+
+    [Theory]
+    [InlineData("/orbis/mainMenu")]
+    [InlineData("/orbis/mainLive")]
+    [InlineData("/orbis/mainLive?liveStatus=LIVE&p=3")]
+    [InlineData("/orbis/mainLive?handler=Rows")]
+    [InlineData("/orbis/mainLive?link=1")]
+    [InlineData("/orbis/mainLiveHistory")]
+    [InlineData("/orbis/mainSetting")]
+    [InlineData("/orbis/mainVideoSetting")]
+    [InlineData("/orbis/mainVideoSetting?edit=new&preset=Twitch")]
+    [InlineData("/orbis/mainChannelSetting")]
+    [InlineData("/orbis/mainChannelSetting?edit=new&platform=twitch&active=true")]
+    [InlineData("/orbis/mainTaskManager")]
+    [InlineData("/orbis/mainTaskManager?handler=Stats")]
+    [InlineData("/orbis/countdown")]
+    public async Task Pages_RenderOnTheServer(string path)
+    {
+        // mainLive used to crash in the React build when no video was live (x?.map on a 404 body).
+        using var response = await _fixture.Client.GetAsync(path);
+
+        Assert.True(response.StatusCode == HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+        Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]
-    public async Task SpaFallback_ServesTheIndexForClientSideRoutes()
+    public async Task LanguageSelector_StoresTheChoiceAndTranslatesThePages()
+    {
+        using var choose = new HttpRequestMessage(HttpMethod.Get, "/orbis/lang/it");
+        choose.Headers.Referrer = new Uri(_fixture.Client.BaseAddress!, "/orbis/mainLive?p=1");
+        using var chosen = await _fixture.NoRedirectClient.SendAsync(choose);
+
+        Assert.Equal(HttpStatusCode.Redirect, chosen.StatusCode);
+        Assert.Equal("/orbis/mainLive?p=1", chosen.Headers.Location?.OriginalString);
+        var cookie = chosen.Headers.GetValues("Set-Cookie").Single().Split(";")[0];
+
+        using var page = new HttpRequestMessage(HttpMethod.Get, "/orbis/mainMenu");
+        page.Headers.Add("Cookie", cookie);
+        using var italian = await _fixture.NoRedirectClient.SendAsync(page);
+        var html = await italian.Content.ReadAsStringAsync();
+
+        Assert.Contains("<html lang=\"it\">", html, StringComparison.Ordinal);
+        Assert.Contains("Gestione Live", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task LanguageSelector_NeverRedirectsOutsideTheApplication()
+    {
+        using var choose = new HttpRequestMessage(HttpMethod.Get, "/orbis/lang/xx");
+        choose.Headers.Referrer = new Uri("http://evil.example//orbis/x");
+        using var response = await _fixture.NoRedirectClient.SendAsync(choose);
+
+        Assert.Equal("/orbis/mainMenu", response.Headers.Location?.OriginalString);
+        Assert.False(response.Headers.Contains("Set-Cookie"));
+    }
+
+    [Fact]
+    public async Task UnknownPaths_AreNotFound()
     {
         using var response = await _fixture.Client.GetAsync("/orbis/liveSettings");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("orbis", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -376,6 +421,7 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
         Assert.Equal("ERROR", video!.Status);
         Assert.Contains("ffprobe-not-installed", video.Message!, StringComparison.Ordinal);
         Assert.Equal("mp4", await ExtensionOf(video.Pkid));
+        await AssertRelationsOf(video.Pkid);
 
         using var stopped = await _fixture.Client.PutAsync($"/live/stop-live?videoLivePkid={video.Pkid}", null);
         Assert.Equal(HttpStatusCode.OK, stopped.StatusCode);
@@ -383,6 +429,17 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
         // unlockVideo answered HttpStatus.ACCEPTED: the unlock runs in the task executor.
         using var lockResponse = await _fixture.Client.PutAsync($"/video/unlockVideo?videoKey={video.Pkid}", null);
         Assert.Equal(HttpStatusCode.Accepted, lockResponse.StatusCode);
+    }
+
+    /// <summary>The live page needs the platform (history) and the setting of every video.</summary>
+    private async Task AssertRelationsOf(int videoKey)
+    {
+        using var list = await _fixture.Client.GetAsync("/video/getAllVideo?size=200&sort=pkid,desc");
+        var item = (await list.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("content").EnumerateArray()
+            .First(candidate => candidate.GetProperty("pkid").GetInt32() == videoKey);
+
+        Assert.Equal("channel-e2e-live", item.GetProperty("videoLiveHistory").GetProperty("platformStreamName").GetString());
+        Assert.Equal("libx264", item.GetProperty("videoSetting").GetProperty("videoCodecName").GetString());
     }
 
     private async Task<string?> ExtensionOf(int videoKey)

@@ -7,7 +7,7 @@ using Orbis.Stream.Core.Configuration;
 namespace Orbis.Stream.App;
 
 /// <summary>
-/// WebView2 host window: it shows the React application served by the in-process Kestrel host,
+/// WebView2 host window: it shows the Razor pages served by the in-process Kestrel host,
 /// replacing the JCEF window of the Java version.
 /// </summary>
 public partial class MainWindow : Window

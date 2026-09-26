@@ -7,7 +7,9 @@ The application is a native rewrite of the original Java Spring Boot + JCEF proj
 
 - **Shell**: .NET 10 WPF (`OrbisStream.exe`) hosting the WebView2 control.
 - **Backend**: ASP.NET Core (Kestrel) in the same process, listening on `http://localhost:1200`.
-- **Frontend**: the original compiled React build, served as static files with SPA fallback.
+- **Frontend**: ASP.NET Core Razor Pages rendered on the server (`src/Orbis.Stream.Core/Pages`),
+  styled like Windows 11 (Fluent 2 colors, Segoe UI Variable, Segoe Fluent Icons, light/dark
+  theme following the system). One stylesheet and one small script, no JavaScript framework.
 - **Streaming**: an external `ffmpeg` process fed by a generated FFmpeg concat playlist.
 - **Persistence**: SQLite (`stream.db`), created and migrated on startup.
 
@@ -30,7 +32,7 @@ dotnet test OrbisStream.slnx -c Release
 dotnet run --project src/Orbis.Stream.App/Orbis.Stream.App.csproj
 ```
 
-The shell opens on `http://localhost:1200/orbis/mainMenu`, the entry point of the React
+The shell opens on `http://localhost:1200/orbis/mainMenu`, the dashboard of the Razor
 frontend, whose router basename is `/orbis`.
 
 ## Publish
@@ -135,8 +137,9 @@ Responses keep the conventions the frontend expects:
 }
 ```
 
-`GET /` redirects to `/orbis/mainMenu`, and any non-API path that is not a real file falls
-back to `index.html` so that client-side routing works on a hard refresh.
+`GET /` redirects to `/orbis/mainMenu`. The pages keep the `/orbis/...` paths of the former
+React router and call the services in-process; the language chosen in the sidebar is stored in
+the `orbis-lang` cookie and also localizes the backend messages.
 
 ## Streaming pipeline
 
@@ -152,8 +155,8 @@ back to `index.html` so that client-side routing works on a hard refresh.
 ## Repository layout
 
 ```
-src/Orbis.Stream.Core     backend: API, data, services, FFmpeg, i18n, system info
-src/Orbis.Stream.App      WPF/WebView2 shell and the compiled React build in wwwroot
+src/Orbis.Stream.Core     backend: API, Razor pages, data, services, FFmpeg, i18n, system info
+src/Orbis.Stream.App      WPF/WebView2 shell, app icon, stylesheet and script in wwwroot
 src/Orbis.Stream.Tests    xUnit suite: API end-to-end, database, paging, i18n, FFmpeg
 Installer                 NSIS setup (installer.nsi) and the optional WiX MSI
 ```

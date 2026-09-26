@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,6 +9,7 @@
     <LangVersion>latest</LangVersion>
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +24,9 @@
 
   <ItemGroup>
     <None Include="Messages\*.properties" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Interface strings of the Razor pages, one file per language (ported from the React build). -->
+    <EmbeddedResource Include="Ui\*.json" LogicalName="Ui.%(Filename).json" WithCulture="false" />
+    <Content Remove="Ui\*.json" />
   </ItemGroup>
 
   <ItemGroup>
