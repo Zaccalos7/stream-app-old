@@ -14,86 +14,177 @@ public struct SettingView: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            // Settings Form - macOS Native Style
-            Form {
-                Section(header: Text(selectedSettingId == nil ? "New Configuration" : "Edit Configuration").font(.headline)) {
-                    TextField("Channel Name", text: $channelName)
-                    TextField("Stream URL (RTMP)", text: $streamUrl)
-                    SecureField("Stream Key", text: $streamKey)
-                    TextField("Platform Name (e.g. Twitch Main)", text: $platformStreamName)
-                    TextField("Video Folder Path", text: $videoFolder)
-                    TextField("Description", text: $descriptionText)
+            // Left Panel: Settings Form
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedSettingId == nil ? "New Configuration" : "Edit Configuration")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Set up your channel and stream details")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.bottom, 8)
 
-                    HStack {
+                    VStack(alignment: .leading, spacing: 20) {
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Channel Name")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("Enter channel name", text: $channelName)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Stream URL (RTMP)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("rtmp://...", text: $streamUrl)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Stream Key")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            SecureField("Enter secret key", text: $streamKey)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Platform Name")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("e.g. Twitch Main", text: $platformStreamName)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Video Folder Path")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("/path/to/videos", text: $videoFolder)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Description")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("Optional description", text: $descriptionText)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+                    }
+                    .padding(24)
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
+
+                    HStack(spacing: 16) {
                         Spacer()
                         if selectedSettingId != nil {
-                            Button("Cancel") {
-                                resetForm()
+                            Button(action: resetForm) {
+                                Text("Cancel")
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
                             }
+                            .buttonStyle(.borderless)
                         }
+
                         Button(action: saveConfiguration) {
                             Text(selectedSettingId == nil ? "Save Configuration" : "Update Configuration")
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 10)
                         }
                         .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+                        .tint(.blue)
+                        .clipShape(Capsule())
                     }
-                    .padding(.top, 10)
                 }
+                .padding(32)
             }
-            .formStyle(.grouped)
-            .frame(width: 400)
+            .frame(minWidth: 450, maxWidth: 500)
+            .background(Color(NSColor.windowBackgroundColor))
 
             Divider()
 
-            // Settings List - macOS Table Style
+            // Right Panel: Saved Configurations List
             VStack(alignment: .leading, spacing: 0) {
-                Text("Saved Configurations")
-                    .font(.headline)
-                    .padding()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Saved Configurations")
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 32)
+                .padding(.bottom, 16)
 
                 List(settingsList, selection: $selectedSettingId) { setting in
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(setting.channelName)
-                                .font(.headline)
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.primary)
+
                             Text(setting.streamUrl)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            Text("Folder: \(setting.videoFolder)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 13, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+
+                            HStack(spacing: 4) {
+                                Image(systemName: "folder.fill")
+                                    .foregroundStyle(.tertiary)
+                                Text(setting.videoFolder)
+                            }
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
                         }
                         Spacer()
 
-                        Button(action: {
-                            editConfiguration(setting)
-                        }) {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        .buttonStyle(.borderless)
+                        VStack(spacing: 12) {
+                            HStack(spacing: 16) {
+                                Button(action: { editConfiguration(setting) }) {
+                                    Image(systemName: "pencil")
+                                        .foregroundStyle(.blue)
+                                }
+                                .buttonStyle(.plain)
 
-                        Button(action: {
-                            scanFolder(setting)
-                        }) {
-                            Label("Scan", systemImage: "arrow.triangle.2.circlepath")
-                        }
-                        .buttonStyle(.borderless)
+                                Button(action: { scanFolder(setting) }) {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                        .foregroundStyle(.orange)
+                                }
+                                .buttonStyle(.plain)
 
-                        Button(action: {
-                            deleteConfiguration(setting)
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                                .foregroundColor(.red)
+                                Button(action: { deleteConfiguration(setting) }) {
+                                    Image(systemName: "trash")
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
-                        .buttonStyle(.borderless)
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 8)
                     .tag(setting.id)
                 }
-                .listStyle(.inset(alternatesRowBackgrounds: true))
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(Color(NSColor.controlBackgroundColor))
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(NSColor.controlBackgroundColor))
         }
-        .navigationTitle("Channel & Stream Configurations")
         .onAppear {
             loadSettings()
         }
