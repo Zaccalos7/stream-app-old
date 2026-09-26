@@ -13,97 +13,178 @@ public struct SettingView: View {
     public init() {}
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Channel & Stream Configurations")
-                .font(.largeTitle)
-                .bold()
+        HStack(spacing: 0) {
+            // Left Panel: Settings Form
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedSettingId == nil ? "New Configuration" : "Edit Configuration")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Set up your channel and stream details")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.bottom, 8)
+
+                    VStack(alignment: .leading, spacing: 20) {
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Channel Name")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("Enter channel name", text: $channelName)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Stream URL (RTMP)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("rtmp://...", text: $streamUrl)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Stream Key")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            SecureField("Enter secret key", text: $streamKey)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Platform Name")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("e.g. Twitch Main", text: $platformStreamName)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Video Folder Path")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("/path/to/videos", text: $videoFolder)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Description")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("Optional description", text: $descriptionText)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
+                    }
+                    .padding(24)
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
+
+                    HStack(spacing: 16) {
+                        Spacer()
+                        if selectedSettingId != nil {
+                            Button(action: resetForm) {
+                                Text("Cancel")
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.borderless)
+                        }
+
+                        Button(action: saveConfiguration) {
+                            Text(selectedSettingId == nil ? "Save Configuration" : "Update Configuration")
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                        .clipShape(Capsule())
+                    }
+                }
+                .padding(32)
+            }
+            .frame(minWidth: 450, maxWidth: 500)
+            .background(Color(NSColor.windowBackgroundColor))
 
             Divider()
 
-            HStack(alignment: .top, spacing: 20) {
-                // Settings Form
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(selectedSettingId == nil ? "New Configuration" : "Edit Configuration")
-                        .font(.title2)
-                        .bold()
-
-                    TextField("Channel Name", text: $channelName)
-                        .textFieldStyle(.roundedBorder)
-
-                    TextField("Stream URL (RTMP)", text: $streamUrl)
-                        .textFieldStyle(.roundedBorder)
-
-                    SecureField("Stream Key", text: $streamKey)
-                        .textFieldStyle(.roundedBorder)
-
-                    TextField("Platform Name (e.g. Twitch Main)", text: $platformStreamName)
-                        .textFieldStyle(.roundedBorder)
-
-                    TextField("Video Folder Path", text: $videoFolder)
-                        .textFieldStyle(.roundedBorder)
-
-                    TextField("Description", text: $descriptionText)
-                        .textFieldStyle(.roundedBorder)
-
-                    HStack {
-                        Button(action: saveConfiguration) {
-                            Text(selectedSettingId == nil ? "Save Configuration" : "Update Configuration")
-                        }
-                        .buttonStyle(.borderedProminent)
-
-                        if selectedSettingId != nil {
-                            Button("Cancel") {
-                                resetForm()
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    }
-                }
-                .frame(width: 320)
-                .padding()
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(12)
-
-                // Settings List
-                VStack(alignment: .leading) {
+            // Right Panel: Saved Configurations List
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Saved Configurations")
-                        .font(.title2)
-                        .bold()
-
-                    List(settingsList) { setting in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(setting.channelName)
-                                    .font(.headline)
-                                Text(setting.streamUrl)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                Text("Folder: \(setting.videoFolder)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Button("Edit") {
-                                editConfiguration(setting)
-                            }
-                            .buttonStyle(.bordered)
-
-                            Button("Scan") {
-                                scanFolder(setting)
-                            }
-                            .buttonStyle(.bordered)
-
-                            Button("Delete", role: .destructive) {
-                                deleteConfiguration(setting)
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                        .padding(.vertical, 4)
-                    }
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(.primary)
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 32)
+                .padding(.bottom, 16)
+
+                List(settingsList, selection: $selectedSettingId) { setting in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(setting.channelName)
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.primary)
+
+                            Text(setting.streamUrl)
+                                .font(.system(size: 13, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+
+                            HStack(spacing: 4) {
+                                Image(systemName: "folder.fill")
+                                    .foregroundStyle(.tertiary)
+                                Text(setting.videoFolder)
+                            }
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+
+                        VStack(spacing: 12) {
+                            HStack(spacing: 16) {
+                                Button(action: { editConfiguration(setting) }) {
+                                    Image(systemName: "pencil")
+                                        .foregroundStyle(.blue)
+                                }
+                                .buttonStyle(.plain)
+
+                                Button(action: { scanFolder(setting) }) {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                        .foregroundStyle(.orange)
+                                }
+                                .buttonStyle(.plain)
+
+                                Button(action: { deleteConfiguration(setting) }) {
+                                    Image(systemName: "trash")
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 8)
+                    .tag(setting.id)
+                }
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(Color(NSColor.controlBackgroundColor))
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(NSColor.controlBackgroundColor))
         }
-        .padding()
         .onAppear {
             loadSettings()
         }
@@ -146,6 +227,9 @@ public struct SettingView: View {
         if let id = setting.id {
             _ = SettingService.shared.deleteSetting(id: id)
             loadSettings()
+            if selectedSettingId == id {
+                resetForm()
+            }
         }
     }
 

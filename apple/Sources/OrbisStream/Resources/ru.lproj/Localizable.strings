@@ -1,0 +1,12 @@
+/* RU Localizations */
+"success.register.response" = "Успешная регистрация";
+"success.operations" = "Операция успешно завершена";
+"setting.delete" = "Параметр успешно удален";
+"setting.update" = "Параметр успешно обновлен";
+"setting.created" = "Параметр успешно создан";
+"retrieves.configurations" = "Список найденных конфигураций";
+"live.started" = "Прямой эфир запущен";
+"live.stopped" = "Прямой эфир остановлен";
+"image.saved" = "Изображение успешно сохранено";
+"delete.successful" = "Удаление прошло успешно";
+"input.not.valid" = "Некорректный ввод";

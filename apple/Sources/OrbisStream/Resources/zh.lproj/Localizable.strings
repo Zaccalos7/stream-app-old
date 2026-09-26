@@ -1,0 +1,12 @@
+/* ZH Localizations */
+"success.register.response" = "注册成功";
+"success.operations" = "操作成功完成";
+"setting.delete" = "参数删除成功";
+"setting.update" = "参数更新成功";
+"setting.created" = "参数创建成功";
+"retrieves.configurations" = "找到的配置列表";
+"live.started" = "直播已开始";
+"live.stopped" = "直播已停止";
+"image.saved" = "图片保存成功";
+"delete.successful" = "删除成功";
+"input.not.valid" = "输入无效";

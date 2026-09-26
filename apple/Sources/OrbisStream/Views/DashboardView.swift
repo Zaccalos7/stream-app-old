@@ -14,109 +14,174 @@ public struct DashboardView: View {
     public init() {}
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                Text("Live Streaming Control")
-                    .font(.largeTitle)
-                    .bold()
-                Spacer()
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(isLiveActive ? Color.green : Color.red)
-                        .frame(width: 12, height: 12)
-                    Text(isLiveActive ? "LIVE ONLINE" : "OFFLINE")
-                        .font(.headline)
-                        .foregroundColor(isLiveActive ? .green : .secondary)
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header Area
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Live Streaming Control")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Manage and monitor your broadcasts")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+
+                    // Live Status Indicator Pill
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(isLiveActive ? Color.green : Color.red)
+                            .frame(width: 10, height: 10)
+                            .shadow(color: isLiveActive ? .green.opacity(0.5) : .red.opacity(0.5), radius: 4)
+                        Text(isLiveActive ? "LIVE ONLINE" : "OFFLINE")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundColor(isLiveActive ? .green : .secondary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial)
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(12)
-            }
+                .padding(.top, 16)
 
-            Divider()
+                // Cards
+                VStack(spacing: 20) {
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Group {
-                        Text("Channel & Video Selection")
-                            .font(.title2)
-                            .bold()
+                    // Selection Card
+                    VStack(alignment: .leading, spacing: 16) {
+                        Label("Channel & Video", systemImage: "play.tv.fill")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
 
-                        Picker("Select Channel", selection: $selectedChannel) {
-                            Text("-- Select Channel --").tag("")
-                            ForEach(channels, id: \.channelName) { ch in
-                                Text(ch.channelName).tag(ch.channelName)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .onChange(of: selectedChannel) { newChannel in
-                            updateChannelDetails(newChannel)
-                        }
+                        Divider()
 
-                        Picker("Select Video", selection: $selectedVideoPath) {
-                            Text("-- Select Video --").tag("")
-                            if let ch = channels.first(where: { $0.channelName == selectedChannel }) {
-                                ForEach(ch.videoPathAndKeyList, id: \.videoPath) { item in
-                                    Text(item.videoPath).tag(item.videoPath)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Channel")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Picker("", selection: $selectedChannel) {
+                                Text("-- Select Channel --").tag("")
+                                ForEach(channels, id: \.channelName) { ch in
+                                    Text(ch.channelName).tag(ch.channelName)
                                 }
                             }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .onChange(of: selectedChannel) { newChannel in
+                                updateChannelDetails(newChannel)
+                            }
+
+                            Text("Video Source")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 4)
+                            Picker("", selection: $selectedVideoPath) {
+                                Text("-- Select Video --").tag("")
+                                if let ch = channels.first(where: { $0.channelName == selectedChannel }) {
+                                    ForEach(ch.videoPathAndKeyList, id: \.videoPath) { item in
+                                        Text(item.videoPath).tag(item.videoPath)
+                                    }
+                                }
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
                         }
-                        .pickerStyle(.menu)
                     }
+                    .padding(20)
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
 
-                    Divider()
+                    // Endpoint Card
+                    VStack(alignment: .leading, spacing: 16) {
+                        Label("Stream Endpoint", systemImage: "network")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
 
-                    Group {
-                        Text("Stream Endpoint")
-                            .font(.title2)
-                            .bold()
+                        Divider()
 
-                        TextField("RTMP Server URL (rtmp://...)", text: $streamUrl)
-                            .textFieldStyle(.roundedBorder)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("RTMP Server URL")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            TextField("rtmp://...", text: $streamUrl)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
 
-                        SecureField("Stream Key", text: $streamKey)
-                            .textFieldStyle(.roundedBorder)
+                            Text("Stream Key")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 4)
+                            SecureField("Secret Key", text: $streamKey)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
 
-                        TextField("Platform Name (e.g. Twitch Main)", text: $platformStreamName)
-                            .textFieldStyle(.roundedBorder)
+                            Text("Platform Name")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 4)
+                            TextField("e.g. Twitch Main", text: $platformStreamName)
+                                .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
+                        }
                     }
+                    .padding(20)
+                    .background(.regularMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
 
-                    Divider()
+                }
 
+                // Action Buttons
+                VStack(spacing: 12) {
                     HStack(spacing: 16) {
                         Button(action: startLive) {
-                            Label("Start Live Stream", systemImage: "play.fill")
-                                .font(.headline)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
+                            HStack {
+                                Spacer()
+                                Image(systemName: "play.fill")
+                                Text("Start Broadcast")
+                                Spacer()
+                            }
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .padding(.vertical, 10)
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(.green)
+                        .tint(Color.blue)
+                        .clipShape(Capsule())
                         .disabled(isLiveActive || selectedVideoPath.isEmpty || streamUrl.isEmpty || streamKey.isEmpty)
 
                         Button(action: stopLive) {
-                            Label("Stop Live Stream", systemImage: "stop.fill")
-                                .font(.headline)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
+                            HStack {
+                                Spacer()
+                                Image(systemName: "stop.fill")
+                                Text("End Broadcast")
+                                Spacer()
+                            }
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .padding(.vertical, 10)
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(.red)
+                        .tint(Color.red)
+                        .clipShape(Capsule())
                         .disabled(!isLiveActive)
                     }
 
                     if !statusMessage.isEmpty {
                         Text(statusMessage)
-                            .font(.subheadline)
+                            .font(.system(.callout, design: .rounded))
                             .foregroundColor(.secondary)
                             .padding(.top, 8)
+                            .animation(.easeInOut, value: statusMessage)
                     }
                 }
-                .padding()
+                .padding(.top, 10)
+
             }
+            .padding(32)
         }
-        .padding()
+        .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             loadChannels()
         }
