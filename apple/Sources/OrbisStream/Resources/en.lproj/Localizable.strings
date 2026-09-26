@@ -1,0 +1,12 @@
+/* English Localizations */
+"success.register.response" = "Registration successful";
+"success.operations" = "Operation completed successfully";
+"setting.delete" = "Setting deleted successfully";
+"setting.update" = "Setting updated successfully";
+"setting.created" = "Setting created successfully";
+"retrieves.configurations" = "List of configurations found";
+"live.started" = "Live started";
+"live.stopped" = "Live stopped";
+"image.saved" = "Image saved successfully";
+"delete.successful" = "Deleted successfully";
+"input.not.valid" = "Input not valid";
