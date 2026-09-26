@@ -1,1 +1,0 @@
-import{s as c}from"./serverLink-CVTOj5L6.js";const r=c,d=async({request:t})=>{const e=(await t.formData()).get("data"),o=`${r}video-setting/save`,s=await(await fetch(o,{method:"POST",headers:{"Content-Type":"application/json"},body:e})).json(),n=s.response==="success",a=s.message;return{success:n,message:a}};export{d as clientAction};

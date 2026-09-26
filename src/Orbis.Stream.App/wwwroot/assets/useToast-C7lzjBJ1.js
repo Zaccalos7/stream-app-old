@@ -1,7 +1,0 @@
-import{t as r}from"./NewSelect-CuHAHbiw.js";const l={default:"default",destructive:"error",success:"success",warning:"warning",info:"info"},g=s=>({...{gap:12,minWidth:"400px",minHeight:"90px",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:"24px",border:"2px solid",boxShadow:"0 8px 32px 0 rgba(0, 0, 0, 0.25)",color:"#fff",letterSpacing:"0.25px",fontSize:"1.01rem",fontWeight:600,textShadow:`
-      -1px -1px 0 #000,
-       1px -1px 0 #000,
-      -1px  1px 0 #000,
-       1px  1px 0 #000,
-       0px  2px 4px rgba(0,0,0,0.4)
-    `},...{default:{background:"rgba(0, 0, 0, 0.35)",borderColor:"rgba(255, 255, 255, 0.2)"},destructive:{background:"rgba(239, 68, 68, 0.35)",borderColor:"rgba(239, 68, 68, 0.6)"},success:{background:"rgba(16, 185, 129, 0.35)",borderColor:"rgba(16, 185, 129, 0.7)"},warning:{background:"rgba(234, 179, 8, 0.35)",borderColor:"rgba(234, 179, 8, 0.7)"},info:{background:"rgba(59, 130, 246, 0.35)",borderColor:"rgba(59, 130, 246, 0.7)"}}[s]}),f=()=>({toast:t=>{const{variant:o="default",title:n,description:a,persistent:i,action:d,id:e,onDismiss:u}=t,b=g(o);if(o==="default"){r(n||"",{...a&&{description:a},...i&&{duration:1/0},action:d,...e&&{id:e},onDismiss:u,...t.duration&&{duration:t.duration},style:b});return}const c=l[o];(r[c]||r)(n||"",{...a&&{description:a},...i&&{duration:1/0},action:d,...e&&{id:e},...t.duration&&{duration:t.duration},onDismiss:u,style:b})},toastDismiss:r.dismiss,unstable_genericSonnerToast:r});export{f as u};

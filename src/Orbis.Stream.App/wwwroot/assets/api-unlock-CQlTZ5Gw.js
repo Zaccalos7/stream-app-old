@@ -1,1 +1,0 @@
-import{s as c}from"./serverLink-CVTOj5L6.js";const a=async({request:o})=>{const e=await o.formData(),n=e.get("intent"),s=e.get("videoKey");if(n==="unlock"){const t=await fetch(`${c}video/unlockVideo?videoKey=${s}`,{method:"PUT"}).then(i=>i.json());return{success:t.response,message:t.message}}return{}};export{a as clientAction};
