@@ -16,7 +16,11 @@ The application is a native rewrite of the original Java Spring Boot + JCEF proj
 - Windows 11 (the shell is WPF/WebView2; the backend and tests also build on Linux/macOS).
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 - The WebView2 Runtime (preinstalled on current Windows 10/11).
-- `ffmpeg` and `ffprobe` on `PATH` (or configured through environment variables).
+- `ffmpeg` and `ffprobe` to stream: the installer bundles them (see below), otherwise
+  `winget install Gyan.FFmpeg`, or copy `ffmpeg.exe` and `ffprobe.exe` next to
+  `OrbisStream.exe` (the application prefers them over `PATH`).
+- [NSIS](https://nsis.sourceforge.io/Download) only to build the installer
+  (`sudo apt install nsis` on Debian/Ubuntu).
 
 ## Build, test, run
 
@@ -33,12 +37,55 @@ frontend, whose router basename is `/orbis`.
 
 ```bash
 dotnet publish src/Orbis.Stream.App/Orbis.Stream.App.csproj -c Release -r win-x64 \
-  --self-contained false -p:PublishSingleFile=true -o artifacts/publish
+  --self-contained true -p:PublishSingleFile=true \
+  -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o artifacts/publish
 ```
 
-`wwwroot` is copied next to the executable, so the published folder is self-sufficient.
-Ship `ffmpeg.exe` and `ffprobe.exe` in the same folder, or point the environment variables
-at them.
+The result is self-contained: `OrbisStream.exe` embeds the .NET runtime, `wwwroot` sits
+next to it, so the folder runs on a clean Windows 11 machine.
+
+## Windows installer
+
+```bash
+./Installer/build-installer.sh          # Linux, macOS and Windows (needs makensis)
+```
+
+or on Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File Installer\build-installer.ps1
+```
+
+Both publish the application and compile an NSIS setup in
+`artifacts/installer/OrbisStream-<version>-win-x64-setup.exe` (about 117 MB with FFmpeg):
+
+- installs per user in `%LOCALAPPDATA%\Programs\OrbisStream`, so no administrator rights
+  are required and uninstalling never touches the videos;
+- **FFmpeg 8.1.3 is bundled** in the `ffmpeg` subdirectory, so streaming works offline
+  right after the installation: the application looks there before falling back to `PATH`;
+- the components page lets you skip FFmpeg (or the desktop shortcut) if you prefer your own
+  build; the installer then warns when neither FFmpeg nor FFprobe is on `PATH`;
+- warns when the Microsoft Edge WebView2 Evergreen Runtime is missing;
+- Start Menu and optional desktop shortcuts, an uninstaller registered in
+  *Settings → Apps → Installed apps*;
+- supports silent installation (`setup.exe /S`) and silent uninstall.
+
+To build the small setup without the FFmpeg payload, where the FFmpeg component installs
+the official build with `winget` instead:
+
+```bash
+./Installer/build-installer.sh --no-ffmpeg
+```
+
+An MSI is available for deployments that require one (Windows only, because WiX cannot
+build MSI packages elsewhere):
+
+```powershell
+dotnet tool install --global wix --version 5.0.2
+wix extension add -g WixToolset.UI.wixext/5.0.2
+powershell -ExecutionPolicy Bypass -File Installer\build-msi.ps1
+```
+
 
 ## Runtime data
 
@@ -108,6 +155,7 @@ back to `index.html` so that client-side routing works on a hard refresh.
 src/Orbis.Stream.Core     backend: API, data, services, FFmpeg, i18n, system info
 src/Orbis.Stream.App      WPF/WebView2 shell and the compiled React build in wwwroot
 src/Orbis.Stream.Tests    xUnit suite: API end-to-end, database, paging, i18n, FFmpeg
+Installer                 NSIS setup (installer.nsi) and the optional WiX MSI
 ```
 
 ## Tests
@@ -115,6 +163,21 @@ src/Orbis.Stream.Tests    xUnit suite: API end-to-end, database, paging, i18n, F
 `dotnet test` runs the full suite, including an end-to-end test that boots the real host,
 generates a short clip with FFmpeg, streams it and asserts the `ENDED` state. The FFmpeg
 tests are skipped when `ffmpeg`/`ffprobe` are not available.
+
+## Third-party components
+
+| Component | Version | Licence | Origin |
+| --------- | ------- | ------- | ------ |
+| FFmpeg (bundled by the installer) | 8.1.3, win64 shared build | GPL v3 or later | [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds), build `autobuild-2026-09-25-15-37`, SHA-256 `1b3f0a730b1a3d780cce438d2fe091c5b8473dad2a5dbf0c2d0625029b3e70b6` |
+| Microsoft.Data.Sqlite / SQLitePCLRaw | 10.0.12 | MIT | NuGet |
+| Swashbuckle.AspNetCore | 9.0.1 | MIT | NuGet |
+| Microsoft.Web.WebView2 | 1.0.4191.47 | redistributable | NuGet |
+
+The installer deploys the FFmpeg licence as `ffmpeg/LICENSE-ffmpeg.txt` in the installation
+folder. FFmpeg is redistributed under the terms of the GPL v3 (or later), the corresponding
+source is available at <https://ffmpeg.org/download.html> and the exact build recipe at
+<https://github.com/BtbN/FFmpeg-Builds>. Orbis Stream itself is MIT licensed and links to
+FFmpeg as a separate process, so the two remain independent works.
 
 ## License
 

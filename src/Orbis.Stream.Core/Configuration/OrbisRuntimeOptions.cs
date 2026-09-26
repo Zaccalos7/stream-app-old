@@ -77,7 +77,7 @@ public sealed class OrbisRuntimeOptions
         var imagesDirectory = ResolveImagesDirectory(dataDirectory);
         var port = ResolvePort(args, environment);
         var embeddedBrowser = ResolveEmbeddedBrowser(args, environment);
-        var ffmpegPath = Read(environment, FfmpegEnvironmentVariable) ?? "ffmpeg";
+        var ffmpegPath = ResolveFfmpeg(environment);
         var ffprobePath = ResolveFfprobe(environment, ffmpegPath);
         var webRootPath = ResolveWebRoot(args, environment);
 
@@ -166,6 +166,33 @@ public sealed class OrbisRuntimeOptions
         }
 
         return true;
+    }
+
+    private static string ResolveFfmpeg(IDictionary<string, string?> environment)
+    {
+        var fromEnvironment = Read(environment, FfmpegEnvironmentVariable);
+        if (!string.IsNullOrWhiteSpace(fromEnvironment))
+        {
+            return fromEnvironment;
+        }
+
+        // A portable install, or the installer payload, may ship the binaries next to
+        // the executable or in the ffmpeg subdirectory: prefer them over whatever PATH
+        // resolves to.
+        var name = OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg";
+        foreach (var candidate in new[]
+                 {
+                     Path.Combine(AppContext.BaseDirectory, name),
+                     Path.Combine(AppContext.BaseDirectory, "ffmpeg", name)
+                 })
+        {
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return "ffmpeg";
     }
 
     private static string ResolveFfprobe(IDictionary<string, string?> environment, string ffmpegPath)
