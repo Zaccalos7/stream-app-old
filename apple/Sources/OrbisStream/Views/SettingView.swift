@@ -13,97 +13,87 @@ public struct SettingView: View {
     public init() {}
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Channel & Stream Configurations")
-                .font(.largeTitle)
-                .bold()
-
-            Divider()
-
-            HStack(alignment: .top, spacing: 20) {
-                // Settings Form
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(selectedSettingId == nil ? "New Configuration" : "Edit Configuration")
-                        .font(.title2)
-                        .bold()
-
+        HStack(spacing: 0) {
+            // Settings Form - macOS Native Style
+            Form {
+                Section(header: Text(selectedSettingId == nil ? "New Configuration" : "Edit Configuration").font(.headline)) {
                     TextField("Channel Name", text: $channelName)
-                        .textFieldStyle(.roundedBorder)
-
                     TextField("Stream URL (RTMP)", text: $streamUrl)
-                        .textFieldStyle(.roundedBorder)
-
                     SecureField("Stream Key", text: $streamKey)
-                        .textFieldStyle(.roundedBorder)
-
                     TextField("Platform Name (e.g. Twitch Main)", text: $platformStreamName)
-                        .textFieldStyle(.roundedBorder)
-
                     TextField("Video Folder Path", text: $videoFolder)
-                        .textFieldStyle(.roundedBorder)
-
                     TextField("Description", text: $descriptionText)
-                        .textFieldStyle(.roundedBorder)
 
                     HStack {
-                        Button(action: saveConfiguration) {
-                            Text(selectedSettingId == nil ? "Save Configuration" : "Update Configuration")
-                        }
-                        .buttonStyle(.borderedProminent)
-
+                        Spacer()
                         if selectedSettingId != nil {
                             Button("Cancel") {
                                 resetForm()
                             }
-                            .buttonStyle(.bordered)
                         }
-                    }
-                }
-                .frame(width: 320)
-                .padding()
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(12)
-
-                // Settings List
-                VStack(alignment: .leading) {
-                    Text("Saved Configurations")
-                        .font(.title2)
-                        .bold()
-
-                    List(settingsList) { setting in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(setting.channelName)
-                                    .font(.headline)
-                                Text(setting.streamUrl)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                Text("Folder: \(setting.videoFolder)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Button("Edit") {
-                                editConfiguration(setting)
-                            }
-                            .buttonStyle(.bordered)
-
-                            Button("Scan") {
-                                scanFolder(setting)
-                            }
-                            .buttonStyle(.bordered)
-
-                            Button("Delete", role: .destructive) {
-                                deleteConfiguration(setting)
-                            }
-                            .buttonStyle(.bordered)
+                        Button(action: saveConfiguration) {
+                            Text(selectedSettingId == nil ? "Save Configuration" : "Update Configuration")
                         }
-                        .padding(.vertical, 4)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                     }
+                    .padding(.top, 10)
                 }
             }
+            .formStyle(.grouped)
+            .frame(width: 400)
+
+            Divider()
+
+            // Settings List - macOS Table Style
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Saved Configurations")
+                    .font(.headline)
+                    .padding()
+
+                List(settingsList, selection: $selectedSettingId) { setting in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(setting.channelName)
+                                .font(.headline)
+                            Text(setting.streamUrl)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Text("Folder: \(setting.videoFolder)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+
+                        Button(action: {
+                            editConfiguration(setting)
+                        }) {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .buttonStyle(.borderless)
+
+                        Button(action: {
+                            scanFolder(setting)
+                        }) {
+                            Label("Scan", systemImage: "arrow.triangle.2.circlepath")
+                        }
+                        .buttonStyle(.borderless)
+
+                        Button(action: {
+                            deleteConfiguration(setting)
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                    .padding(.vertical, 4)
+                    .tag(setting.id)
+                }
+                .listStyle(.inset(alternatesRowBackgrounds: true))
+            }
         }
-        .padding()
+        .navigationTitle("Channel & Stream Configurations")
         .onAppear {
             loadSettings()
         }
@@ -146,6 +136,9 @@ public struct SettingView: View {
         if let id = setting.id {
             _ = SettingService.shared.deleteSetting(id: id)
             loadSettings()
+            if selectedSettingId == id {
+                resetForm()
+            }
         }
     }
 

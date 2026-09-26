@@ -1,12 +1,12 @@
-/* Italian Localizations */
+/* IT Localizations */
 "success.register.response" = "Registrazione avvenuta con successo";
 "success.operations" = "Operazione avvenuta con successo";
 "setting.delete" = "Configurazione cancellata";
 "setting.update" = "Configurazione aggiornata";
 "setting.created" = "Configurazione salvata";
 "retrieves.configurations" = "Lista configurazioni trovate";
-"live.started" = "Live avviata correttamente";
-"live.stopped" = "Live fermata";
+"live.started" = "Live avviata correttemente";
+"live.stopped" = "Live stopped";
 "image.saved" = "Immagine salvata";
-"delete.successful" = "Cancellazione avvenuta con successo";
+"delete.successful" = "Cancellazione avvenuto con successo.";
 "input.not.valid" = "Parametro non valido";

@@ -1,0 +1,12 @@
+/* FR Localizations */
+"success.register.response" = "Inscription réussie";
+"success.operations" = "Opération terminée avec succès";
+"setting.delete" = "Paramètre supprimé avec succès";
+"setting.update" = "Paramètre mis à jour avec succès";
+"setting.created" = "Paramètre créé avec succès";
+"retrieves.configurations" = "Liste des configurations trouvées";
+"live.started" = "Direct démarré";
+"live.stopped" = "Direct arrêté";
+"image.saved" = "Image enregistrée avec succès";
+"delete.successful" = "Suppression réussie";
+"input.not.valid" = "Saisie non valide";

@@ -14,7 +14,8 @@ public struct DashboardView: View {
     public init() {}
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 0) {
+            // Header
             HStack {
                 Text("Live Streaming Control")
                     .font(.largeTitle)
@@ -30,93 +31,78 @@ public struct DashboardView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.secondary.opacity(0.1))
+                .background(Color(NSColor.controlBackgroundColor))
                 .cornerRadius(12)
+                .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
             }
+            .padding()
 
             Divider()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Group {
-                        Text("Channel & Video Selection")
-                            .font(.title2)
-                            .bold()
-
-                        Picker("Select Channel", selection: $selectedChannel) {
-                            Text("-- Select Channel --").tag("")
-                            ForEach(channels, id: \.channelName) { ch in
-                                Text(ch.channelName).tag(ch.channelName)
-                            }
+            // Form Content
+            Form {
+                Section(header: Text("Channel & Video Selection").font(.headline)) {
+                    Picker("Select Channel", selection: $selectedChannel) {
+                        Text("-- Select Channel --").tag("")
+                        ForEach(channels, id: \.channelName) { ch in
+                            Text(ch.channelName).tag(ch.channelName)
                         }
-                        .pickerStyle(.menu)
-                        .onChange(of: selectedChannel) { newChannel in
-                            updateChannelDetails(newChannel)
-                        }
-
-                        Picker("Select Video", selection: $selectedVideoPath) {
-                            Text("-- Select Video --").tag("")
-                            if let ch = channels.first(where: { $0.channelName == selectedChannel }) {
-                                ForEach(ch.videoPathAndKeyList, id: \.videoPath) { item in
-                                    Text(item.videoPath).tag(item.videoPath)
-                                }
-                            }
-                        }
-                        .pickerStyle(.menu)
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: selectedChannel) { newChannel in
+                        updateChannelDetails(newChannel)
                     }
 
-                    Divider()
-
-                    Group {
-                        Text("Stream Endpoint")
-                            .font(.title2)
-                            .bold()
-
-                        TextField("RTMP Server URL (rtmp://...)", text: $streamUrl)
-                            .textFieldStyle(.roundedBorder)
-
-                        SecureField("Stream Key", text: $streamKey)
-                            .textFieldStyle(.roundedBorder)
-
-                        TextField("Platform Name (e.g. Twitch Main)", text: $platformStreamName)
-                            .textFieldStyle(.roundedBorder)
+                    Picker("Select Video", selection: $selectedVideoPath) {
+                        Text("-- Select Video --").tag("")
+                        if let ch = channels.first(where: { $0.channelName == selectedChannel }) {
+                            ForEach(ch.videoPathAndKeyList, id: \.videoPath) { item in
+                                Text(item.videoPath).tag(item.videoPath)
+                            }
+                        }
                     }
+                    .pickerStyle(.menu)
+                }
 
-                    Divider()
+                Section(header: Text("Stream Endpoint").font(.headline)) {
+                    TextField("RTMP Server URL (rtmp://...)", text: $streamUrl)
+                    SecureField("Stream Key", text: $streamKey)
+                    TextField("Platform Name (e.g. Twitch Main)", text: $platformStreamName)
+                }
 
+                Section {
                     HStack(spacing: 16) {
                         Button(action: startLive) {
                             Label("Start Live Stream", systemImage: "play.fill")
-                                .font(.headline)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
+                        .controlSize(.large)
                         .disabled(isLiveActive || selectedVideoPath.isEmpty || streamUrl.isEmpty || streamKey.isEmpty)
 
                         Button(action: stopLive) {
                             Label("Stop Live Stream", systemImage: "stop.fill")
-                                .font(.headline)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.red)
+                        .controlSize(.large)
                         .disabled(!isLiveActive)
                     }
+                    .padding(.top, 8)
 
                     if !statusMessage.isEmpty {
                         Text(statusMessage)
-                            .font(.subheadline)
+                            .font(.callout)
                             .foregroundColor(.secondary)
                             .padding(.top, 8)
+                            .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-                .padding()
             }
+            .formStyle(.grouped)
         }
-        .padding()
         .onAppear {
             loadChannels()
         }

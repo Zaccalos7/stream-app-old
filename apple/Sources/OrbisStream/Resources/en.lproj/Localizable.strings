@@ -1,4 +1,4 @@
-/* English Localizations */
+/* EN Localizations */
 "success.register.response" = "Registration successful";
 "success.operations" = "Operation completed successfully";
 "setting.delete" = "Setting deleted successfully";
@@ -8,5 +8,5 @@
 "live.started" = "Live started";
 "live.stopped" = "Live stopped";
 "image.saved" = "Image saved successfully";
-"delete.successful" = "Deleted successfully";
+"delete.successful" = "Deleted successful.";
 "input.not.valid" = "Input not valid";

@@ -1,0 +1,12 @@
+/* DE Localizations */
+"success.register.response" = "Registrierung erfolgreich";
+"success.operations" = "Vorgang erfolgreich abgeschlossen";
+"setting.delete" = "Einstellung erfolgreich gelöscht";
+"setting.update" = "Einstellung erfolgreich aktualisiert";
+"setting.created" = "Einstellung erfolgreich erstellt";
+"retrieves.configurations" = "Liste der Konfigurationen gefunden";
+"live.started" = "Live-Stream gestartet";
+"live.stopped" = "Live-Stream gestoppt";
+"image.saved" = "Bild erfolgreich gespeichert";
+"delete.successful" = "Erfolgreich gelöscht";
+"input.not.valid" = "Ungültige Eingabe";

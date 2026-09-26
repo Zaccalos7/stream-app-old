@@ -1,0 +1,12 @@
+/* ES Localizations */
+"success.register.response" = "Registro completado con éxito";
+"success.operations" = "Operación completada con éxito";
+"setting.delete" = "Configuración eliminada con éxito";
+"setting.update" = "Configuración actualizada con éxito";
+"setting.created" = "Configuración creada con éxito";
+"retrieves.configurations" = "Lista de configuraciones encontrada";
+"live.started" = "Directo iniciado";
+"live.stopped" = "Directo detenido";
+"image.saved" = "Imagen guardada con éxito";
+"delete.successful" = "Eliminado con éxito.";
+"input.not.valid" = "Entrada no válida";
