@@ -361,6 +361,11 @@ a.row-card:hover > .icon:last-child { color: var(--hue); }
 h3.section { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 h3.section::before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: var(--grad); }
 
+/* Page footer: pinned to bottom, centered (page grows to fill .content only when it has one) */
+/* -8px = the rise animation's translateY, so the entrance doesn't flash a scrollbar on .content */
+.page:has(> .page-footer) { min-height: calc(100% - 8px); display: flex; flex-direction: column; }
+.page-footer { margin-top: auto; padding-top: 28px; display: flex; justify-content: center; }
+
 /* ---------- Controls ---------- */
 
 .btn {
