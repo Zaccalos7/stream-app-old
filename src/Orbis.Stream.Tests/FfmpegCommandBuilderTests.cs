@@ -29,11 +29,11 @@ public sealed class FfmpegCommandBuilderTests
     [Fact]
     public void Build_UsesTheVideoSettingAsEncoderConfiguration()
     {
-        var command = FfmpegCommandBuilder.Build(
-            new FfmpegStreamRequest("/videos/clip.mp4", "rtmp://ingest/live/key", Probe(), Setting()));
+        var command = string.Join(' ', FfmpegCommandBuilder.Build(
+            new FfmpegStreamRequest("/videos/clip.mp4", "rtmp://ingest/live/key", Probe(), Setting())));
 
         Assert.Contains("-re ", command, StringComparison.Ordinal);
-        Assert.Contains("-i \"/videos/clip.mp4\"", command, StringComparison.Ordinal);
+        Assert.Contains("-i /videos/clip.mp4", command, StringComparison.Ordinal);
         Assert.Contains("-c:v libx264", command, StringComparison.Ordinal);
         Assert.Contains("-pix_fmt yuv420p", command, StringComparison.Ordinal);
         Assert.Contains("-f flv", command, StringComparison.Ordinal);
@@ -44,7 +44,7 @@ public sealed class FfmpegCommandBuilderTests
         Assert.Contains("-ac 2", command, StringComparison.Ordinal);
         Assert.Contains("-preset ultrafast", command, StringComparison.Ordinal);
         Assert.Contains("-tune zerolatency", command, StringComparison.Ordinal);
-        Assert.EndsWith("\"rtmp://ingest/live/key\"", command, StringComparison.Ordinal);
+        Assert.EndsWith(" rtmp://ingest/live/key", command, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -56,8 +56,8 @@ public sealed class FfmpegCommandBuilderTests
         var setting = Setting();
         setting.GopSize = gopSize;
 
-        var command = FfmpegCommandBuilder.Build(
-            new FfmpegStreamRequest("/videos/clip.mp4", "rtmp://ingest/live/key", Probe(frameRate: frameRate), setting));
+        var command = string.Join(' ', FfmpegCommandBuilder.Build(
+            new FfmpegStreamRequest("/videos/clip.mp4", "rtmp://ingest/live/key", Probe(frameRate: frameRate), setting)));
 
         Assert.Contains($"-g {expectedGop}", command, StringComparison.Ordinal);
         Assert.Contains($"-r {frameRate.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture)}", command, StringComparison.Ordinal);
@@ -66,12 +66,23 @@ public sealed class FfmpegCommandBuilderTests
     [Fact]
     public void Build_SkipsAudioFlagsWhenTheInputHasNoAudioTrack()
     {
-        var command = FfmpegCommandBuilder.Build(
-            new FfmpegStreamRequest("/videos/clip.mp4", "rtmp://ingest/live/key", Probe(hasAudio: false), Setting()));
+        var command = string.Join(' ', FfmpegCommandBuilder.Build(
+            new FfmpegStreamRequest("/videos/clip.mp4", "rtmp://ingest/live/key", Probe(hasAudio: false), Setting())));
 
         Assert.Contains("-map 0:v:0", command, StringComparison.Ordinal);
         Assert.DoesNotContain("-c:a", command, StringComparison.Ordinal);
         Assert.DoesNotContain("-map 0:a:0?", command, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(@"C:\Users\me\Downloads\PS4 live di ""me"".mp4")]
+    [InlineData(@"C:\Video\")]
+    public void Build_PassesTheInputPathAsOneVerbatimArgument(string inputPath)
+    {
+        var arguments = FfmpegCommandBuilder.Build(
+            new FfmpegStreamRequest(inputPath, "rtmp://ingest/live/key", Probe(), Setting()));
+
+        Assert.Equal(inputPath, arguments[arguments.ToList().IndexOf("-i") + 1]);
     }
 
     [Theory]

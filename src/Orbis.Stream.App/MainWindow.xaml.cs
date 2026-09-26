@@ -46,6 +46,7 @@ public partial class MainWindow : Window
                 CoreWebView2HostResourceAccessKind.Allow);
             Browser.CoreWebView2.Navigate(_options.ApplicationEntryPoint);
             Browser.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
+            Browser.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         }
         catch (Exception exception)
         {
@@ -67,6 +68,25 @@ public partial class MainWindow : Window
             // cancelled navigation (a quick double click) must not hide it again.
             LoadingBar.Visibility = Visibility.Collapsed;
             StatusText.Text = $"Il browser non riesce a raggiungere {_options.ApplicationUrl}.";
+        }
+    }
+
+    /// <summary>
+    /// A file dropped on a <c>data-drop-path</c> input (site.js): the page only gets a File without
+    /// its path, WebView2 resolves it on the host side and the absolute path is sent back.
+    /// </summary>
+    private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        // WebMessageAsJson never throws, unlike TryGetWebMessageAsString on a non-string message.
+        if (e.WebMessageAsJson != "\"dropPath\"")
+        {
+            return;
+        }
+
+        var path = e.AdditionalObjects?.OfType<CoreWebView2File>().FirstOrDefault()?.Path;
+        if (path is not null)
+        {
+            Browser.CoreWebView2.PostWebMessageAsString(path);
         }
     }
 

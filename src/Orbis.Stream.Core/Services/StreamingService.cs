@@ -54,11 +54,18 @@ public sealed class StreamingService
 
         var channelName = request.ChannelName!;
         var platformStreamName = request.PlatformStreamName!;
-        var videoPathFolder = request.VideoPath!;
+        var videoPathFolder = NormalizeUserPath(request.VideoPath!);
         var streamKey = request.StreamKey!;
         var streamUrl = request.StreamUrl!;
 
         CheckIfALiveAlreadyStreamingForAChannel(channelName, platformStreamName);
+
+        // Checked before any row is saved: ffprobe's own error on a missing file is unreadable.
+        if (!File.Exists(videoPathFolder) && !Directory.Exists(videoPathFolder))
+        {
+            _logger.LogError("{Message} {Path}", _localizer.PrintMessage("file.not.found"), videoPathFolder);
+            throw new NotFoundCustomException("file.not.found");
+        }
 
         var timeStartLive = DateTime.Now;
         SaveVideoLiveHistory(videoPathFolder, timeStartLive, streamUrl, streamKey, platformStreamName);
@@ -228,6 +235,12 @@ public sealed class StreamingService
             PlatformStreamName = platformStreamingName
         });
     }
+
+    /// <summary>
+    /// Windows "Copy as path" wraps the path in double quotes: without stripping them
+    /// <see cref="Path.GetFullPath(string)"/> sees a relative path and prefixes the working directory.
+    /// </summary>
+    internal static string NormalizeUserPath(string path) => path.Trim().Trim('"').Trim();
 
     private void SaveVideoPaths(
         string videoPathFolder,

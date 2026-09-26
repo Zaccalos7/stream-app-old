@@ -351,6 +351,16 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
         });
         Assert.Equal(HttpStatusCode.NotFound, noVideos.StatusCode);
 
+        using var missing = await _fixture.Client.PostAsJsonAsync("/live/start-live", new
+        {
+            streamUrl = "rtmp://ingest.example/live",
+            streamKey = "stream-key",
+            videoPath = $"\"{Path.Combine(_fixture.DataDirectory, "missing clip.mp4")}\"",
+            platformStreamName = "channel-e2e-missing",
+            channelName = "channel-e2e-missing"
+        });
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+
         var folder = Path.Combine(_fixture.DataDirectory, "clips");
         Directory.CreateDirectory(folder);
         await File.WriteAllBytesAsync(Path.Combine(folder, "clip.mp4"), [0x00, 0x01, 0x02]);

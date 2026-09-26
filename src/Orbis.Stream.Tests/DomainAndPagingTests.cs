@@ -228,3 +228,13 @@ public sealed class FfmpegCodecCatalogTests
         Assert.Equal("libx265", FfmpegCodecCatalog.ResolveVideoCodecName(173, null));
     }
 }
+
+public sealed class UserPathTests
+{
+    [Theory]
+    [InlineData("\"C:\\Users\\me\\Downloads\\PS4 live.mp4\"", "C:\\Users\\me\\Downloads\\PS4 live.mp4")]
+    [InlineData("  \"/videos/clip.mp4\" ", "/videos/clip.mp4")]
+    [InlineData("/videos/clip.mp4", "/videos/clip.mp4")]
+    public void NormalizeUserPath_StripsCopyAsPathQuotes(string input, string expected) =>
+        Assert.Equal(expected, Orbis.Stream.Core.Services.StreamingService.NormalizeUserPath(input));
+}

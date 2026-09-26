@@ -13,21 +13,18 @@ public sealed class FfmpegStreamingSession : IAsyncDisposable
     private readonly Task<string> _standardError;
     private int _stopRequested;
 
-    private FfmpegStreamingSession(Process process, int videoPkid, string inputPath, string arguments, ILogger logger)
+    private FfmpegStreamingSession(Process process, int videoPkid, string inputPath, ILogger logger)
     {
         _process = process;
         _logger = logger;
         VideoPkid = videoPkid;
         InputPath = inputPath;
-        Arguments = arguments;
         _standardError = process.StandardError.ReadToEndAsync();
     }
 
     public int VideoPkid { get; }
 
     public string InputPath { get; }
-
-    public string Arguments { get; }
 
     public bool StopRequested => Volatile.Read(ref _stopRequested) == 1;
 
@@ -65,7 +62,7 @@ public sealed class FfmpegStreamingSession : IAsyncDisposable
         }
 
         logger.LogInformation("ffmpeg started for {Input} -> {OutputUrl}", inputPath, outputUrl);
-        return new FfmpegStreamingSession(process, videoPkid, inputPath, arguments, logger);
+        return new FfmpegStreamingSession(process, videoPkid, inputPath, logger);
     }
 
     public async Task<int> WaitForExitAsync(CancellationToken cancellationToken)

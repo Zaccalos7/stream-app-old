@@ -17,7 +17,7 @@ public sealed record FfmpegStreamRequest(
 /// </summary>
 public static class FfmpegCommandBuilder
 {
-    public static string Build(FfmpegStreamRequest request)
+    public static IReadOnlyList<string> Build(FfmpegStreamRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -29,10 +29,11 @@ public static class FfmpegCommandBuilder
         {
             "-hide_banner",
             "-nostdin",
-            "-loglevel error",
+            "-loglevel",
+            "error",
             "-re",
             "-i",
-            FfmpegProbe.Quote(request.InputPath)
+            request.InputPath
         };
 
         // JavaCV mapped the grabbed video/audio streams of the input file.
@@ -108,9 +109,9 @@ public static class FfmpegCommandBuilder
             }
         }
 
-        arguments.Add(FfmpegProbe.Quote(request.OutputUrl));
+        arguments.Add(request.OutputUrl);
 
-        return string.Join(' ', arguments);
+        return arguments;
     }
 
     /// <summary>

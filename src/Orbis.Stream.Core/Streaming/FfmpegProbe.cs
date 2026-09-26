@@ -29,12 +29,7 @@ public sealed class FfmpegProbe
 
     public async Task<MediaProbeResult> ProbeAsync(string inputPath, CancellationToken cancellationToken)
     {
-        var arguments = string.Join(' ',
-            "-v error",
-            "-print_format json",
-            "-show_streams",
-            "-show_format",
-            Quote(inputPath));
+        string[] arguments = ["-v", "error", "-print_format", "json", "-show_streams", "-show_format", inputPath];
 
         var output = await _locator
             .RunCapturedAsync(_locator.FfprobePath, arguments, cancellationToken)
@@ -119,8 +114,6 @@ public sealed class FfmpegProbe
 
         return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var single) ? single : 0;
     }
-
-    internal static string Quote(string value) => $"\"{value.Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
 }
 
 /// <summary>Resolves ffmpeg/ffprobe, mirroring the FFmpegFrameGrabber/Recorder of the Java version
@@ -140,12 +133,14 @@ public sealed class FfmpegToolLocator
 
     public string FfprobePath => _ffprobePath;
 
-    public ProcessStartInfo CreateStartInfo(string fileName, string arguments)
+    /// <summary>
+    /// One <see cref="ProcessStartInfo.ArgumentList"/> entry per argument: .NET escapes each one for
+    /// the OS, so paths with spaces, quotes or a trailing backslash reach ffmpeg unchanged.
+    /// </summary>
+    public ProcessStartInfo CreateStartInfo(string fileName, IEnumerable<string> arguments)
     {
-        var startInfo = new ProcessStartInfo
+        var startInfo = new ProcessStartInfo(fileName, arguments)
         {
-            FileName = fileName,
-            Arguments = arguments,
             RedirectStandardError = true,
             RedirectStandardOutput = true,
             UseShellExecute = false,
@@ -155,7 +150,7 @@ public sealed class FfmpegToolLocator
         return startInfo;
     }
 
-    public async Task<string> RunCapturedAsync(string fileName, string arguments, CancellationToken cancellationToken)
+    public async Task<string> RunCapturedAsync(string fileName, IEnumerable<string> arguments, CancellationToken cancellationToken)
     {
         using var process = new Process { StartInfo = CreateStartInfo(fileName, arguments) };
         process.Start();

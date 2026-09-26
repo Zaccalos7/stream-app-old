@@ -55,3 +55,23 @@ document.addEventListener("change", event => {
   const presets = [...event.target.form.querySelectorAll("[data-stream-url]")].map(radio => radio.dataset.streamUrl);
   if (!field.value.trim() || presets.includes(field.value.trim())) field.value = url;
 });
+
+// <input data-drop-path>: dropping a file or folder on it fills its absolute path. The browser
+// never exposes paths, so the dropped File goes to the WebView2 host, which answers with its path.
+// Drops anywhere else are swallowed: by default WebView2 would navigate away to the file.
+let dropTarget = null;
+document.addEventListener("dragover", event => event.preventDefault());
+document.addEventListener("drop", event => {
+  event.preventDefault();
+  const input = event.target.closest?.("[data-drop-path]");
+  const files = event.dataTransfer?.files;
+  if (!input || !files?.length || !window.chrome?.webview) return;
+  dropTarget = input;
+  window.chrome.webview.postMessageWithAdditionalObjects("dropPath", files);
+});
+window.chrome?.webview?.addEventListener("message", event => {
+  if (!dropTarget || typeof event.data !== "string") return;
+  dropTarget.value = event.data;
+  dropTarget.dispatchEvent(new Event("input", { bubbles: true }));
+  dropTarget = null;
+});
