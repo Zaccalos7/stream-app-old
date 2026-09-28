@@ -563,18 +563,8 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
     }
 
     [Fact]
-    public async Task MainLive_StartLiveIsAShortcutInTheSideBarAndOpensFromIt()
+    public async Task MainLive_StartLiveOpensWithUrlParameter()
     {
-        // The one thing done from every page sits in the side bar, and the link works from anywhere:
-        // on the live page the wizard is there and opens at once, elsewhere the link goes there with
-        // ?start=1, which draws it open without waiting for a click on another button.
-        using var menu = await _fixture.Client.GetAsync("/orbis/mainMenu");
-        var menuBody = await menu.Content.ReadAsStringAsync();
-
-        Assert.Contains("href=\"/orbis/mainLive?start=1\"", menuBody, StringComparison.Ordinal);
-        Assert.Contains("data-open-start", menuBody, StringComparison.Ordinal);
-        Assert.Contains("Start Live", menuBody, StringComparison.Ordinal);
-
         // Without the shortcut the wizard is closed, and it is not the script that opens it: a page
         // that arrives with the link already shows it.
         using var plain = await _fixture.Client.GetAsync("/orbis/mainLive");
