@@ -153,5 +153,6 @@
   "gpu": "Graphics",
   "uptime": "Uptime",
   "appUptime": "App uptime",
-  "dotnet": ".NET runtime"
+  "dotnet": ".NET runtime",
+  "retry": "Retry"
 }

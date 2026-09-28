@@ -17,6 +17,7 @@ public sealed class VideoService
     private readonly ResponseFactory _responses;
     private readonly Localizer _localizer;
     private readonly BackgroundTaskExecutor _executor;
+    private readonly LiveChangeNotifier _notifier;
     private readonly ILogger<VideoService> _logger;
 
     public VideoService(
@@ -26,6 +27,7 @@ public sealed class VideoService
         ResponseFactory responses,
         Localizer localizer,
         BackgroundTaskExecutor executor,
+        LiveChangeNotifier notifier,
         ILogger<VideoService> logger)
     {
         _videoRepository = videoRepository;
@@ -34,6 +36,7 @@ public sealed class VideoService
         _responses = responses;
         _localizer = localizer;
         _executor = executor;
+        _notifier = notifier;
         _logger = logger;
     }
 
@@ -114,6 +117,7 @@ public sealed class VideoService
     public MessageResponse UnlockVideo(int videoKey)
     {
         var video = FindVideoToUnlock(videoKey);
+        _notifier.Raise();
         _executor.Execute(() => _ = UnlockAsync(video));
 
         return _responses.Build("unlock.in.progress", StatusCodes.Status202Accepted);
@@ -123,6 +127,7 @@ public sealed class VideoService
     {
         video.ShouldBeStop = true;
         _videoRepository.Update(video);
+        _notifier.Raise();
 
         if (await CheckThreeTimesAsync(video.Pkid).ConfigureAwait(false))
         {

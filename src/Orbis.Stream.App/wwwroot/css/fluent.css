@@ -748,6 +748,40 @@ dialog.dialog.wide { width: min(900px, calc(100vw - 32px)); }
 
 [hidden] { display: none !important; }
 
+/* ---------- attesa ---------- */
+
+/* One spinner for every wait: a row that is starting or stopping, a panel whose answer is late.
+   The border leaves room for the stroke, and the ring is drawn in the accent of the place it is in. */
+.spinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin: 0 2px;
+  border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -3px;
+  flex: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* A note or a spinner that only shows while the element around it is in that state: the server
+   paints neither, the script sets data-state (waiting, failed) or data-busy (a row at work). */
+[data-while] { display: none; }
+[data-state="loading"] [data-while="loading"],
+[data-state="failed"] [data-while="failed"],
+[data-busy] [data-while="busy"] { display: flex; }
+[data-state="loading"] [data-while="loading"] .spinner,
+[data-busy] [data-while="busy"] .spinner { margin: 0; }
+
+/* A row at work: the icons stop looking like they can be pressed again, and the whole row steps
+   back so that the spinner next to them is what the eye lands on. */
+[data-busy] { cursor: progress; }
+[data-busy] .actions { opacity: 0.55; }
+[data-busy] button[disabled] { cursor: progress; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

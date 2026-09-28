@@ -15,6 +15,7 @@ public sealed class VideoSettingService
     private readonly VideoRepository _videoRepository;
     private readonly ResponseFactory _responses;
     private readonly Localizer _localizer;
+    private readonly LiveChangeNotifier _notifier;
     private readonly ILogger<VideoSettingService> _logger;
 
     public VideoSettingService(
@@ -22,12 +23,14 @@ public sealed class VideoSettingService
         VideoRepository videoRepository,
         ResponseFactory responses,
         Localizer localizer,
+        LiveChangeNotifier notifier,
         ILogger<VideoSettingService> logger)
     {
         _videoSettingRepository = videoSettingRepository;
         _videoRepository = videoRepository;
         _responses = responses;
         _localizer = localizer;
+        _notifier = notifier;
         _logger = logger;
     }
 
@@ -54,6 +57,7 @@ public sealed class VideoSettingService
 
         video.VideoSettingId = settingId;
         _videoRepository.Update(video);
+        _notifier.Raise();
 
         _logger.LogInformation("{Message}", _localizer.PrintMessage("video.settings.saved"));
         _logger.LogInformation("{Message}", _localizer.PrintMessage("success.operations"));

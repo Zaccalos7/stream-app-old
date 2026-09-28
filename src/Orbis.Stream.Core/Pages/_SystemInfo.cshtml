@@ -21,18 +21,15 @@
     ];
     var values = Model.Facts.ToDictionary(fact => fact.Key, fact => fact.Value, StringComparer.Ordinal);
 }
-<div class="card section">
-    <h3><i class="icon">&#xE9D9;</i>&nbsp; @T["systemInfo"]</h3>
-    <dl class="facts">
-        @foreach (var key in keys)
+<dl class="facts">
+    @foreach (var key in keys)
+    {
+        if (values.TryGetValue(key, out var value))
         {
-            if (values.TryGetValue(key, out var value))
-            {
-                <div class="fact">
-                    <dt>@T[key]</dt>
-                    <dd title="@value">@value</dd>
-                </div>
-            }
+            <div class="fact">
+                <dt>@T[key]</dt>
+                <dd title="@value">@value</dd>
+            </div>
         }
-    </dl>
-</div>
+    }
+</dl>

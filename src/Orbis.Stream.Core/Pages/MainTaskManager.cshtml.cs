@@ -13,16 +13,24 @@ public sealed class MainTaskManagerModel(SystemInfoService systemInfo) : OrbisPa
     /// <summary>What the machine is: read once, the meters above are the ones that keep moving.</summary>
     public IReadOnlyList<SystemFact> Facts { get; private set; } = [];
 
-    public void OnGet()
-    {
-        Stats = systemInfo.GetAllSystemInfo();
-        Facts = systemInfo.GetSystemFacts();
-    }
+    /// <summary>
+    /// The value of a counter by its field name. The order of the ported Java list is not something
+    /// a page should rely on to pair four numbers with four cards.
+    /// </summary>
+    public int? Stat(string field) => Stats
+        .FirstOrDefault(stat => string.Equals(stat.Field, field, StringComparison.OrdinalIgnoreCase))?
+        .Value;
 
-    /// <summary>The refresh of the meters every five seconds, without the facts it would repeat.</summary>
-    public PartialViewResult OnGetStats()
+    /// <summary>
+    /// Only the meters: what the machine is needs WMI, whose first answer takes from a moment to
+    /// about a second, and that wait would be the whole page. The facts come on their own, into a
+    /// panel that shows a loading only when the answer is slow enough to be noticed.
+    /// </summary>
+    public void OnGet() => Stats = systemInfo.GetAllSystemInfo();
+
+    public PartialViewResult OnGetFacts()
     {
-        Stats = systemInfo.GetAllSystemInfo();
-        return Partial("_Stats", this);
+        Facts = systemInfo.GetSystemFacts();
+        return Partial("_SystemInfo", this);
     }
 }

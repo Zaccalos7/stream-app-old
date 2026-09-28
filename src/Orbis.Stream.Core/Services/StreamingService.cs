@@ -24,6 +24,7 @@ public sealed class StreamingService
     private readonly IVideoPlaylistStreamer _streamer;
     private readonly StreamingSessionRegistry _sessions;
     private readonly CancellationTokenSource _shutdown = new();
+    private readonly LiveChangeNotifier _notifier;
     private readonly ILogger<StreamingService> _logger;
 
     public StreamingService(
@@ -35,6 +36,7 @@ public sealed class StreamingService
         BackgroundTaskExecutor executor,
         IVideoPlaylistStreamer streamer,
         StreamingSessionRegistry sessions,
+        LiveChangeNotifier notifier,
         ILogger<StreamingService> logger)
     {
         _videoRepository = videoRepository;
@@ -45,6 +47,7 @@ public sealed class StreamingService
         _executor = executor;
         _streamer = streamer;
         _sessions = sessions;
+        _notifier = notifier;
         _logger = logger;
     }
 
@@ -112,6 +115,7 @@ public sealed class StreamingService
         var video = CheckIfExistsAndReturnEntity(videoLivePkid);
         video.ShouldBeStop = true;
         SaveFlagToStopLive(video);
+        _notifier.Raise();
 
         // The row flag is what the streaming loop polls; signalling the process makes the stop
         // immediate for the user interface too.
@@ -248,6 +252,7 @@ public sealed class StreamingService
         VideoSettingsRequest? videoSettingsRecord,
         string channelName)
     {
+        // The rows exist from here on: the pages showing them are already out of date.
         // A null record means "no configuration", exactly like the MapStruct mapper returning null.
         var videoSetting = videoSettingsRecord?.ToEntity();
 
@@ -259,6 +264,8 @@ public sealed class StreamingService
         {
             SaveOneVideoPaths(videoPathFolder, videoLiveHistory, videoSetting, channelName);
         }
+
+        _notifier.Raise();
     }
 
     private void SaveAllVideoPaths(

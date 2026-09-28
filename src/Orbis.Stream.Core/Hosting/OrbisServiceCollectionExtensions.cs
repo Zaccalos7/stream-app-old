@@ -43,6 +43,7 @@ public static class OrbisServiceCollectionExtensions
 
         services.AddSingleton<ISystemInfoProvider>(_ => SystemInfoProviderFactory.CreateDefault());
         services.AddSingleton<SystemInfoService>();
+        services.AddSingleton<LiveChangeNotifier>();
 
         services.AddSingleton(_ => new FfmpegToolLocator(options.FfmpegPath, options.FfprobePath));
         services.AddSingleton<FfmpegProbe>();

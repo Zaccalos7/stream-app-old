@@ -1,10 +1,12 @@
 using System.Net;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Orbis.Stream.Core.Configuration;
 using Orbis.Stream.Core.Hosting;
+using Orbis.Stream.Core.Services;
 
 namespace Orbis.Stream.Tests;
 
@@ -32,6 +34,9 @@ public sealed class TestHostRunner : IAsyncDisposable
     public HttpClient Client { get; }
 
     public HttpClient NoRedirectClient { get; }
+
+    /// <summary>The services of the running host, so that a test can ring the bell as the app does.</summary>
+    public IServiceProvider Services => _host!.Services;
 
     public static TestHostRunner Start(string? ffmpegPath = null, string? ffprobePath = null)
     {
@@ -116,6 +121,8 @@ public sealed class ApplicationFixture : IAsyncLifetime
     public HttpClient Client => _runner.Client;
 
     public HttpClient NoRedirectClient => _runner.NoRedirectClient;
+
+    public IServiceProvider Services => _runner.Services;
 
     public string WebRootPath => _runner.WebRootPath;
 
@@ -516,40 +523,170 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
 
         var unlockForms = actions.Where(action => action.Contains("handler=Unlock", StringComparison.Ordinal)).ToList();
         Assert.All(unlockForms, action => Assert.Matches(@"[?&]videoKey=\d+", action));
+
+        // The row says it is working: a spinner sits with the icons that start, stop and restart, and
+        // it only shows once the form is really on its way, not while the question is being asked.
+        Assert.Contains("data-row", body, StringComparison.Ordinal);
+        Assert.Contains("data-while=\"busy\"", body, StringComparison.Ordinal);
+        Assert.Contains("class=\"spinner\"", body, StringComparison.Ordinal);
+
+        // The rows are redone when the server says one moved, from the change they were drawn from,
+        // and never on a timer.
+        Assert.Matches("data-refresh=\"[^\"]*handler=Rows[^\"]*\" data-since=\"\\d+\"", body);
+        Assert.DoesNotContain("data-interval", body, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task TaskManager_ShowsTheMetersAndWhatTheMachineIs()
+    public async Task MainLive_StartLiveIsAShortcutInTheSideBarAndOpensFromIt()
+    {
+        // The one thing done from every page sits in the side bar, and the link works from anywhere:
+        // on the live page the wizard is there and opens at once, elsewhere the link goes there with
+        // ?start=1, which draws it open without waiting for a click on another button.
+        using var menu = await _fixture.Client.GetAsync("/orbis/mainMenu");
+        var menuBody = await menu.Content.ReadAsStringAsync();
+
+        Assert.Contains("href=\"/orbis/mainLive?start=1\"", menuBody, StringComparison.Ordinal);
+        Assert.Contains("data-open-start", menuBody, StringComparison.Ordinal);
+        Assert.Contains("Start Live", menuBody, StringComparison.Ordinal);
+
+        // Without the shortcut the wizard is closed, and it is not the script that opens it: a page
+        // that arrives with the link already shows it.
+        using var plain = await _fixture.Client.GetAsync("/orbis/mainLive");
+        var plainBody = await plain.Content.ReadAsStringAsync();
+        Assert.Contains("id=\"start-dialog\" data-busy-host>", plainBody, StringComparison.Ordinal);
+
+        using var asked = await _fixture.Client.GetAsync("/orbis/mainLive?start=1");
+        var askedBody = await asked.Content.ReadAsStringAsync();
+        Assert.Contains("id=\"start-dialog\" data-busy-host open", askedBody, StringComparison.Ordinal);
+
+        // Starting a live walks the folder and starts ffmpeg on the server: the dialog says so
+        // next to its button instead of looking inert.
+        Assert.Contains("data-while=\"busy\"", plainBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TaskManager_ShowsTheMetersStraightAwayAndTheFactsOnTheirOwn()
     {
         using var page = await _fixture.Client.GetAsync("/orbis/mainTaskManager");
         var body = await page.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
 
-        // The four meters of the Java build: the test host answers in English.
+        // The four meters of the Java build: the test host answers in English. They are the cheap
+        // part of the page, so they are in the first answer.
         Assert.Contains("ring", body, StringComparison.Ordinal);
         Assert.Contains("CPU TEMPERATURE", body, StringComparison.Ordinal);
         Assert.Contains("SWAP", body, StringComparison.Ordinal);
 
-        // The system information panel: the labels come from the bundle and the values from the
-        // machine, so at least the machine name and the runtime are always there.
-        Assert.Contains("class=\"facts\"", body, StringComparison.Ordinal);
-        Assert.Contains("System information", body, StringComparison.Ordinal);
-        Assert.Contains(Environment.MachineName, body, StringComparison.Ordinal);
-        Assert.Contains(".NET", body, StringComparison.Ordinal);
+        // What the machine is needs WMI, which is why the panel is asked for on its own: the page
+        // says where it will come from, shows a loading only if the answer is late, and does not
+        // wait for it to open.
+        Assert.Contains("data-load=\"/orbis/mainTaskManager?handler=Facts\"", body, StringComparison.Ordinal);
+        Assert.Contains("data-while=\"loading\"", body, StringComparison.Ordinal);
+        Assert.DoesNotContain(Environment.MachineName, body, StringComparison.Ordinal);
+
+        using var facts = await _fixture.Client.GetAsync("/orbis/mainTaskManager?handler=Facts");
+        var panel = await facts.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, facts.StatusCode);
+
+        // The panel itself: the labels come from the bundle and the values from the machine, so at
+        // least the machine name and the runtime are always there.
+        Assert.Contains("class=\"facts\"", panel, StringComparison.Ordinal);
+        Assert.Contains(Environment.MachineName, panel, StringComparison.Ordinal);
+        Assert.Contains(".NET", panel, StringComparison.Ordinal);
+
+        // And it is the only thing in it: no meter travels with the panel.
+        Assert.DoesNotContain("ring", panel, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task TaskManager_RefreshesTheMetersWithoutRepeatingTheFacts()
+    public async Task TaskManager_PushesTheMetersInsteadOfBeingAskedForThem()
     {
-        // The refresh of the meters must not carry the panel: reading WMI on it every five seconds
-        // would be the most expensive thing in the application.
-        using var page = await _fixture.Client.GetAsync("/orbis/mainTaskManager?handler=Stats");
+        // The page is painted by the push channel: it carries the region the values arrive into and
+        // the name of each meter, so the script can fill them without asking the server again.
+        using var page = await _fixture.Client.GetAsync("/orbis/mainTaskManager");
         var body = await page.Content.ReadAsStringAsync();
 
+        Assert.Contains("data-stats", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("data-interval", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("handler=Stats", body, StringComparison.Ordinal);
+
+        foreach (var key in new[] { "cpu", "ram", "swap", "cpu_temperature" })
+        {
+            Assert.Contains($"data-key=\"{key}\"", body, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task Updates_SaysWhenARowMovedAndOnlyWhenSomeoneIsListening()
+    {
+        // The channel of the changes: it answers the counters at once, and a rows message only
+        // after something really moved. The answer never ends, so it is read as it comes.
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/updates?watch=stats");
+        using var page = await _fixture.Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var reader = new StreamReader(await page.Content.ReadAsStreamAsync());
+
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
-        Assert.Contains("ring", body, StringComparison.Ordinal);
-        Assert.DoesNotContain("class=\"facts\"", body, StringComparison.Ordinal);
+        Assert.Equal("text/event-stream", page.Content.Headers.ContentType?.MediaType);
+
+        Assert.Equal("retry: 2000", await reader.ReadLineAsync());
+        Assert.Equal(string.Empty, await reader.ReadLineAsync());
+
+        // A counter is not a change, so it carries no id: the browser keeps the last change number
+        // and resumes the stream from there.
+        Assert.Equal("event: stats", await reader.ReadLineAsync());
+
+        var line = await reader.ReadLineAsync() ?? string.Empty;
+        Assert.StartsWith("data: {", line, StringComparison.Ordinal);
+
+        Assert.Equal(string.Empty, await reader.ReadLineAsync());
+
+        // A window that asked for nothing is not left with a connection open doing nothing.
+        using var silent = await _fixture.Client.GetAsync("/updates");
+        Assert.Equal("", await silent.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Updates_SendsRowsOnlyWhenARowReallyMoved()
+    {
+        var notifier = _fixture.Services.GetRequiredService<LiveChangeNotifier>();
+
+        // From the change the page was drawn from: nothing to say until something moves.
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"/updates?watch=rows&since={notifier.Version}");
+        using var page = await _fixture.Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var reader = new StreamReader(await page.Content.ReadAsStreamAsync());
+
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+
+        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+        // The hello says how long to wait after a dropped stream, and it is what makes the browser
+        // see the stream as open before there is anything to say.
+        Assert.Equal("retry: 2000", await reader.ReadLineAsync(cancel.Token));
+        Assert.Equal(string.Empty, await reader.ReadLineAsync(cancel.Token));
+
+        var reading = reader.ReadLineAsync(cancel.Token);
+
+        // The rows are asked again only when a live row changed, and the number that comes with the
+        // message is the change the page must resume from after a reconnect.
+        notifier.Raise();
+        Assert.Equal($"id: {notifier.Version}", await reading);
+
+        Assert.Equal("event: rows", await reader.ReadLineAsync(cancel.Token));
+        Assert.Equal($"data: {notifier.Version}", await reader.ReadLineAsync(cancel.Token));
+        Assert.Equal(string.Empty, await reader.ReadLineAsync(cancel.Token));
+
+        // A page that asks from a change older than the last one is told at once, instead of waiting
+        // for a change that may not come: that is the reconnect of a page whose stream was closed.
+        using var ask = new HttpRequestMessage(HttpMethod.Get, $"/updates?watch=rows&since={Math.Max(0, notifier.Version - 1)}");
+        using var resumed = await _fixture.Client.SendAsync(ask, HttpCompletionOption.ResponseHeadersRead);
+        using var resumedReader = new StreamReader(await resumed.Content.ReadAsStreamAsync());
+
+        Assert.Equal("retry: 2000", await resumedReader.ReadLineAsync(cancel.Token));
+        Assert.Equal(string.Empty, await resumedReader.ReadLineAsync(cancel.Token));
+        Assert.Equal($"id: {notifier.Version}", await resumedReader.ReadLineAsync(cancel.Token));
+        Assert.Equal("event: rows", await resumedReader.ReadLineAsync(cancel.Token));
     }
 
     /// <summary>The live page needs the platform (history) and the setting of every video.</summary>

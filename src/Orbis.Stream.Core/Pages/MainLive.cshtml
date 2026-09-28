@@ -45,12 +45,14 @@
     </label>
 </form>
 
-<div data-refresh="@Url.Page("/MainLive", "Rows", new { Model.LiveStatus, Model.ChannelName, p = Model.PageIndex })" data-interval="5000">
+@* The rows are redone when the server says one of them moved, not every few seconds: the change
+   it was drawn from travels with it, so the first push is a real change. *@
+<div data-refresh="@Url.Page("/MainLive", "Rows", new { Model.LiveStatus, Model.ChannelName, p = Model.PageIndex })" data-since="@Model.ChangeVersion">
     <partial name="_LiveRows" model="Model" />
 </div>
 
 @* Start a new live: one active video/audio setting + one active streaming configuration. *@
-<dialog class="dialog wide" id="start-dialog">
+<dialog class="dialog wide" id="start-dialog" data-busy-host open="@(Model.OpenStart ? "" : null)">
     <form method="post" asp-page-handler="Start" asp-all-route-data="Model.FilterRoute">
         <div class="dialog-body">
             <h2>@T["startNewLiveTitle"]</h2>
@@ -118,6 +120,9 @@
             }
         </div>
         <div class="dialog-footer">
+            @* The wizard walks the folder and starts ffmpeg on the server: while it answers, the
+               button says so instead of leaving the dialog looking inert. *@
+            <span class="spinner" data-while="busy" title="@T["loading"]"></span>
             <button class="btn accent" disabled="@(!canStart)">@T["startLiveButton"]</button>
             <button class="btn" type="button" commandfor="start-dialog" command="close">@T["cancel"]</button>
         </div>

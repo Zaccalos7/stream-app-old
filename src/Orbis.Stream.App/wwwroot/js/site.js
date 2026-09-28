@@ -1,5 +1,129 @@
 // Orbis Stream: the only script of the Razor pages. Dialogs open with the native
-// command/commandfor attributes; this file adds the confirmation dialog and polling.
+// command/commandfor attributes; this file adds the confirmation dialog, the push channel of the
+// server and the few things a page can fill in on its own.
+
+// The push channel: the server says when something changed instead of waiting to be asked. One
+// connection per page, opened only for what the page actually watches.
+const watchRows = !!document.querySelector("[data-refresh]");
+const watchStats = !!document.querySelector("[data-stats]");
+const stream = watchRows || watchStats
+  ? new EventSource("/updates?watch=" + [watchRows && "rows", watchStats && "stats"].filter(Boolean).join(","))
+  : null;
+
+// <div data-refresh="url" data-since="7">: the server sends a message when a row moved and only then
+// the partial is asked again. A message that arrives while the user is inside a dialog of the rows,
+// or on another window, is kept instead of dropped: with a trigger there is no later tick to fix
+// the page, so the region stays marked to be redone until the moment it can be.
+const rows = document.querySelector("[data-refresh]");
+let rowsAreStale = false;
+let rowsAreComing = false;
+
+const redrawRows = async () => {
+  if (!rows || rowsAreComing || !rowsAreStale) return;
+  if (document.hidden || rows.querySelector("dialog[open]")) return;
+  rowsAreComing = true;
+  rowsAreStale = false;
+  try {
+    const response = await fetch(rows.dataset.refresh);
+    if (response.ok) rows.innerHTML = await response.text();
+    else rowsAreStale = true;
+  } catch {
+    // The server is restarting or the window is closing: the next change tries again.
+    rowsAreStale = true;
+  } finally {
+    rowsAreComing = false;
+  }
+};
+
+if (rows && stream) {
+  stream.addEventListener("rows", () => {
+    rowsAreStale = true;
+    redrawRows();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) redrawRows();
+  });
+  // Closing a dialog of the rows is the moment the user is free to see them change.
+  document.addEventListener("close", redrawRows, true);
+}
+
+// A ring shows its value in the middle and fills itself with a CSS variable, the way the server
+// drew it the first time. -1 is how a provider says it has no value, and 0 means the same for the
+// temperature: then the ring keeps the dash, the fill empties and the note under it stays.
+const paintRing = (ring, value) => {
+  const available = value >= 0 && (ring.dataset.unit === "%" || value > 0);
+  ring.dataset.label = available ? value + ring.dataset.unit : "–";
+  ring.style.setProperty("--value", Math.max(0, Math.min(100, value)));
+  ring.classList.toggle("warn", available && value >= 40 && value < 75);
+  ring.classList.toggle("bad", available && value >= 75);
+  ring.setAttribute("aria-label", ring.dataset.name + (available ? ", " + ring.dataset.label : ""));
+  const note = ring.parentElement?.querySelector("[data-no-data]");
+  if (note) note.hidden = available;
+};
+
+// <div data-stats>: the counters arrive in the channel already measured, under the name each card
+// carries, so the page paints them where they are, with no request and nothing else re-rendered.
+if (watchStats && stream) {
+  stream.addEventListener("stats", event => {
+    let values;
+    try {
+      values = JSON.parse(event.data);
+    } catch {
+      return;
+    }
+
+    for (const ring of document.querySelectorAll("[data-stats] .ring[data-key]")) {
+      const value = values[ring.dataset.key];
+      if (typeof value === "number") paintRing(ring, value);
+    }
+  });
+}
+
+// <div data-load="url" data-delay="400">: a panel filled from the server on its own, because
+// waiting for it would hold the page that contains it. The loading appears only after the delay: on
+// a machine that answers straight away, a flash of loading is slower than the wait it hides.
+for (const panel of document.querySelectorAll("[data-load]")) {
+  const load = async () => {
+    const late = setTimeout(() => { panel.dataset.state = "loading"; }, Number(panel.dataset.delay || 400));
+    try {
+      const response = await fetch(panel.dataset.load);
+      if (!response.ok) throw new Error(String(response.status));
+      const html = await response.text();
+      clearTimeout(late);
+      delete panel.dataset.state;
+      for (const note of panel.querySelectorAll("[data-while]")) note.remove();
+      panel.insertAdjacentHTML("beforeend", html);
+    } catch {
+      clearTimeout(late);
+      panel.dataset.state = "failed";
+    }
+  };
+
+  panel.querySelector("[data-reload]")?.addEventListener("click", load);
+  load();
+}
+
+// A start, a stop or a restart runs on the server, ffmpeg included, so the answer takes a moment:
+// the row that is working says so, next to the icons that asked for it, and its buttons stop
+// accepting a second click. A form that is only waiting for the confirmation is not working yet.
+document.addEventListener("submit", event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || (form.dataset.confirm && !form.dataset.confirmed)) return;
+  const host = form.closest("[data-busy-host], [data-row]");
+  if (!host) return;
+  host.dataset.busy = "1";
+  for (const button of host.querySelectorAll("button[type=submit], button:not([type])")) button.disabled = true;
+});
+
+// The side bar starts a live from anywhere: on this page the dialog is already there, elsewhere
+// the link goes to the page with ?start=1, which draws it open.
+document.addEventListener("click", event => {
+  const shortcut = event.target.closest?.("[data-open-start]");
+  const wizard = document.getElementById("start-dialog");
+  if (!shortcut || !wizard || wizard.open) return;
+  event.preventDefault();
+  wizard.showModal();
+});
 
 // <form data-confirm="question">: asks in the shared ContentDialog before submitting.
 document.addEventListener("submit", event => {
@@ -16,21 +140,6 @@ document.addEventListener("submit", event => {
   };
   dialog.showModal();
 });
-
-// <div data-refresh="url" data-interval="ms">: replaces its content with the server partial,
-// skipped while one of its dialogs is open so that the user never loses the form in progress.
-for (const region of document.querySelectorAll("[data-refresh]")) {
-  const interval = Number(region.dataset.interval || 5000);
-  setInterval(async () => {
-    if (document.hidden || region.querySelector("dialog[open]")) return;
-    try {
-      const response = await fetch(region.dataset.refresh);
-      if (response.ok) region.innerHTML = await response.text();
-    } catch {
-      // The server is restarting or the window is closing: try again on the next tick.
-    }
-  }, interval);
-}
 
 // <div data-countdown="seconds" data-href="url">: counts down, then navigates.
 for (const counter of document.querySelectorAll("[data-countdown]")) {

@@ -71,11 +71,19 @@ public static class LiveLinkView
     /// <summary>
     /// Page of the live of a platform channel: on Twitch it is the channel, on YouTube the live
     /// tab of the handle. A YouTube channel has no public page keyed by its ingest data, so the
-    /// handle is what the user typed in the platform stream name.
+    /// handle is what the user typed in the configuration.
     /// </summary>
-    public static string? UrlOf(string? streamUrl, string? platformStreamName)
+    /// <param name="channelName">
+    /// The channel of the configuration. The form of the configuration keeps the platform in the
+    /// field named platform stream name (the choice between Twitch and YouTube) and the channel
+    /// here, so a live started from the wizard has "twitch" as platform stream name.
+    /// </param>
+    /// <param name="platformStreamName">
+    /// The same channel, for a live that came from the API, whose record names the channel there.
+    /// </param>
+    public static string? UrlOf(string? streamUrl, string? channelName, string? platformStreamName)
     {
-        var name = platformStreamName?.Trim();
+        var name = (channelName ?? platformStreamName)?.Trim();
         if (string.IsNullOrEmpty(name))
         {
             return null;

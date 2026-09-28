@@ -5,6 +5,7 @@ using Orbis.Stream.Core.Hosting;
 using Orbis.Stream.Core.Data;
 using Orbis.Stream.Core.Domain;
 using Orbis.Stream.Core.Pages;
+using Orbis.Stream.Core.Services;
 using Orbis.Stream.Core.SystemInfo;
 
 namespace Orbis.Stream.Tests;
@@ -264,33 +265,50 @@ public sealed class LiveLinkTests
     [Fact]
     public void UrlOf_TwitchIsTheChannelPage()
     {
-        Assert.Equal("https://www.twitch.tv/reproChannel", LiveLinkView.UrlOf(Twitch, "reproChannel"));
-        Assert.Equal("https://www.twitch.tv/reproChannel", LiveLinkView.UrlOf(Twitch, "  reproChannel "));
+        Assert.Equal("https://www.twitch.tv/reproChannel", LiveLinkView.UrlOf(Twitch, "reproChannel", null));
+        Assert.Equal("https://www.twitch.tv/reproChannel", LiveLinkView.UrlOf(Twitch, "  reproChannel ", null));
     }
 
     [Fact]
     public void UrlOf_YouTubeIsTheLiveTabOfTheHandle()
     {
-        Assert.Equal("https://www.youtube.com/@reproChannel/live", LiveLinkView.UrlOf(YouTube, "reproChannel"));
+        Assert.Equal("https://www.youtube.com/@reproChannel/live", LiveLinkView.UrlOf(YouTube, "reproChannel", null));
     }
 
     [Fact]
     public void UrlOf_YouTubeDoesNotDoubleTheAtOfTheHandle()
     {
-        Assert.Equal("https://www.youtube.com/@reproChannel/live", LiveLinkView.UrlOf(YouTube, "@reproChannel"));
+        Assert.Equal("https://www.youtube.com/@reproChannel/live", LiveLinkView.UrlOf(YouTube, "@reproChannel", null));
     }
 
     [Fact]
     public void UrlOf_EscapesWhatWouldBreakTheAddress() =>
-        Assert.Equal("https://www.twitch.tv/a%20b", LiveLinkView.UrlOf(Twitch, "a b"));
+        Assert.Equal("https://www.twitch.tv/a%20b", LiveLinkView.UrlOf(Twitch, "a b", null));
 
     [Theory]
     [InlineData("rtmp://my.cdn.example/live", "reproChannel")]
     [InlineData(Twitch, "")]
     [InlineData(Twitch, "   ")]
     [InlineData(Twitch, null)]
-    public void UrlOf_HasNoLinkWithoutAPlatformOrAChannel(string? streamUrl, string? platformStreamName) =>
-        Assert.Null(LiveLinkView.UrlOf(streamUrl, platformStreamName));
+    public void UrlOf_HasNoLinkWithoutAPlatformOrAChannel(string? streamUrl, string? channelName) =>
+        Assert.Null(LiveLinkView.UrlOf(streamUrl, channelName, null));
+
+
+    [Fact]
+    public void UrlOf_TakesTheChannelOfTheConfigurationNotThePlatform()
+    {
+        // The form of the configuration stores the platform in the field named platform stream
+        // name, and the channel in the channel name: following the wrong one gave twitch.tv/twitch.
+        Assert.Equal("https://www.twitch.tv/ciclovisione", LiveLinkView.UrlOf(Twitch, "ciclovisione", "twitch"));
+        Assert.Equal("https://www.youtube.com/@ciclovisione/live", LiveLinkView.UrlOf(YouTube, "ciclovisione", "youtube"));
+    }
+
+    [Fact]
+    public void UrlOf_FallsBackToTheNameOfTheApiWhenTheChannelIsNotThere()
+    {
+        // A live started through the API names the channel in the platform stream name.
+        Assert.Equal("https://www.twitch.tv/channel-e2e-row", LiveLinkView.UrlOf(Twitch, null, "channel-e2e-row"));
+    }
 
     [Fact]
     public void LabelAndGlyph_AreTheOnesOfTheConfigurationForm()
@@ -350,5 +368,118 @@ public sealed class SystemFactTests
             Assert.False(string.IsNullOrWhiteSpace(fact.Value));
         });
         Assert.Equal(facts.Select(fact => fact.Key).Distinct().Count(), facts.Count);
+    }
+}
+
+public sealed class LiveChangeNotifierTests
+{
+    [Fact]
+    public void EveryChangeHasItsOwnNumber()
+    {
+        var notifier = new LiveChangeNotifier();
+
+        Assert.Equal(0, notifier.Version);
+
+        notifier.Raise();
+        notifier.Raise();
+
+        Assert.Equal(2, notifier.Version);
+    }
+
+    [Fact]
+    public async Task AListenerWaitsForAChangeAndIsToldWhichOneItIs()
+    {
+        var notifier = new LiveChangeNotifier();
+        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+        var waiting = notifier.WaitAsync(0, cancel.Token);
+        Assert.False(waiting.IsCompleted);
+
+        notifier.Raise();
+        notifier.Raise();
+
+        // Both changes went by while it was waiting: one wake up, at the number it reached.
+        Assert.Equal(2, await waiting);
+    }
+
+    [Fact]
+    public async Task AListenerThatArrivesLateIsAnsweredAtOnce()
+    {
+        var notifier = new LiveChangeNotifier();
+        notifier.Raise();
+
+        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+        // The change it missed while it was connecting is the one it asks for, and waiting would
+        // leave it looking at rows that are already out of date until the next change comes.
+        Assert.Equal(1, await notifier.WaitAsync(0, cancel.Token));
+    }
+
+    [Fact]
+    public async Task AListenerResumesFromTheChangeItAlreadyHas()
+    {
+        var notifier = new LiveChangeNotifier();
+        notifier.Raise();
+        notifier.Raise();
+
+        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+        // It already has the first two changes, and those are on its screen: it waits for what is
+        // next, not for the ones it is not missing.
+        var waiting = notifier.WaitAsync(notifier.Version, cancel.Token);
+        Assert.False(waiting.IsCompleted);
+
+        notifier.Raise();
+
+        Assert.Equal(3, await waiting);
+    }
+
+    [Fact]
+    public async Task ManyListenersAreAllWokenByTheSameChange()
+    {
+        var notifier = new LiveChangeNotifier();
+        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+        var listeners = Enumerable.Range(0, 5).Select(_ => notifier.WaitAsync(0, cancel.Token)).ToArray();
+        notifier.Raise();
+
+        Assert.All(await Task.WhenAll(listeners), version => Assert.Equal(1, version));
+    }
+
+    [Fact]
+    public async Task AChangeThatArrivesBetweenTheTestAndTheWaitIsNotLost()
+    {
+        var notifier = new LiveChangeNotifier();
+        using var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+
+        // The window that loses a change is the one between having read the number and starting to
+        // wait for the next: the change is then already there, and the answer has to say so.
+        for (var round = 0; round < 50; round++)
+        {
+            var since = notifier.Version;
+            var waiting = notifier.WaitAsync(since, cancel.Token);
+            notifier.Raise();
+
+            Assert.Equal(since + 1, await waiting);
+        }
+    }
+
+    [Fact]
+    public async Task AListenerThatGoesAwayDoesNotHoldTheOnesThatStay()
+    {
+        var notifier = new LiveChangeNotifier();
+        using var staying = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var waiting = notifier.WaitAsync(0, staying.Token);
+
+        using var leaving = new CancellationTokenSource();
+        var gone = notifier.WaitAsync(0, leaving.Token);
+        leaving.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => gone);
+        Assert.False(waiting.IsCompleted);
+
+        notifier.Raise();
+
+        Assert.Equal(1, await waiting);
     }
 }

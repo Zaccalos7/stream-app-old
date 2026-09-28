@@ -153,5 +153,6 @@
   "gpu": "Scheda video",
   "uptime": "Uptime sistema",
   "appUptime": "Uptime applicazione",
-  "dotnet": "Runtime .NET"
+  "dotnet": "Runtime .NET",
+  "retry": "Riprova"
 }

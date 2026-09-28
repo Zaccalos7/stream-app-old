@@ -153,5 +153,6 @@
   "gpu": "Carte graphique",
   "uptime": "Temps de fonctionnement",
   "appUptime": "Temps de l'application",
-  "dotnet": "Runtime .NET"
+  "dotnet": "Runtime .NET",
+  "retry": "Réessayer"
 }

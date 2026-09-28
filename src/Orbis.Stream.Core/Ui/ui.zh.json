@@ -153,5 +153,6 @@
   "gpu": "显卡",
   "uptime": "运行时间",
   "appUptime": "程序运行时间",
-  "dotnet": ".NET 运行时"
+  "dotnet": ".NET 运行时",
+  "retry": "重试"
 }

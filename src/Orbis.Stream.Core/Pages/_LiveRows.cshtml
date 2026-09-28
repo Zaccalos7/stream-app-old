@@ -30,10 +30,10 @@ else
 
                 // Only a live that is running can be watched, and only a known platform has a page.
                 var livePlatform = live ? LiveLinkView.PlatformOf(video.VideoLiveHistory?.StreamUrl) : null;
-                var liveUrl = livePlatform is null ? null : LiveLinkView.UrlOf(video.VideoLiveHistory?.StreamUrl, platform);
+                var liveUrl = livePlatform is null ? null : LiveLinkView.UrlOf(video.VideoLiveHistory?.StreamUrl, video.ChannelName, platform);
                 var liveLabel = LiveLinkView.LabelOf(livePlatform);
                 var liveTitle = T["openLivePage"] + (string.IsNullOrEmpty(liveLabel) ? "" : " (" + liveLabel + ")");
-                <tr>
+                <tr data-row>
                     <td><span class="badge @LiveStatusView.Css(status)">@T[LiveStatusView.Key(status)]</span></td>
                     <td class="path">
                         <div class="truncate"><strong>@video.Name</strong></div>
@@ -67,6 +67,10 @@ else
                                     <i class="icon">&#xE71B;</i>@T["connectVideoSetting"]
                                 </a>
                             }
+                            @* A start, a stop or a restart runs the server (ffmpeg included), so
+                               the answer takes a moment: this is what says the row is working,
+                               next to the icons that asked for it. *@
+                            <span class="spinner" data-while="busy" title="@T["loading"]"></span>
                         </div>
                     </td>
                 </tr>

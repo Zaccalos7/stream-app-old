@@ -21,6 +21,7 @@ public sealed class FfmpegVideoPlaylistStreamer : IVideoPlaylistStreamer
     private readonly FfmpegToolLocator _locator;
     private readonly StreamingSessionRegistry _sessions;
     private readonly Localizer _localizer;
+    private readonly LiveChangeNotifier _notifier;
     private readonly ILogger<FfmpegVideoPlaylistStreamer> _logger;
 
     public FfmpegVideoPlaylistStreamer(
@@ -30,6 +31,7 @@ public sealed class FfmpegVideoPlaylistStreamer : IVideoPlaylistStreamer
         FfmpegToolLocator locator,
         StreamingSessionRegistry sessions,
         Localizer localizer,
+        LiveChangeNotifier notifier,
         ILogger<FfmpegVideoPlaylistStreamer> logger)
     {
         _videoRepository = videoRepository;
@@ -38,6 +40,7 @@ public sealed class FfmpegVideoPlaylistStreamer : IVideoPlaylistStreamer
         _locator = locator;
         _sessions = sessions;
         _localizer = localizer;
+        _notifier = notifier;
         _logger = logger;
     }
 
@@ -227,6 +230,10 @@ public sealed class FfmpegVideoPlaylistStreamer : IVideoPlaylistStreamer
         video.Message = message;
         video.LiveStatus = liveStatus;
         _videoRepository.Update(video);
+
+        // This is the only place where the engine changes what a row shows, so it is also the
+        // only place that has to tell the open pages that the row they drew is out of date.
+        _notifier.Raise();
     }
 }
 

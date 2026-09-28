@@ -12,6 +12,7 @@ public sealed class MainLiveModel(
     SettingService settings,
     VideoSettingService videoSettings,
     StreamingService streaming,
+    LiveChangeNotifier notifier,
     RequestValidator validator,
     Localizer localizer) : OrbisPageModel
 {
@@ -42,6 +43,18 @@ public sealed class MainLiveModel(
 
     [BindProperty]
     public VideoSettingForm? Form { get; set; }
+
+    /// <summary>
+    /// The change the rows on the page were drawn from, so that the push channel sends this page
+    /// only the changes that happened after it, and not the one that is already on the screen.
+    /// </summary>
+    public long ChangeVersion => notifier.Version;
+
+    /// <summary>The side bar shortcut opens the wizard on arrival (<c>?start=1</c>).</summary>
+    [BindProperty(SupportsGet = true)]
+    public string? Start { get; set; }
+
+    public bool OpenStart => !string.IsNullOrEmpty(Start);
 
     public object Filters => new { LiveStatus, ChannelName, p = PageIndex };
 

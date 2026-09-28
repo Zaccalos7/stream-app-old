@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,6 +17,12 @@ namespace Orbis.Stream.Core.Hosting;
 /// </summary>
 public static class OrbisEndpoints
 {
+    /// <summary>How often the server samples the counters and pushes them to the open pages.</summary>
+    private static readonly TimeSpan StatsInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>How long the browser waits before trying again after a dropped stream.</summary>
+    private const int ReconnectMilliseconds = 2000;
+
     public static IEndpointRouteBuilder MapOrbisEndpoints(this IEndpointRouteBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -25,6 +33,7 @@ public static class OrbisEndpoints
         MapVideoSettings(app);
         MapImage(app);
         MapTaskManager(app);
+        MapUpdates(app);
         return app;
     }
 
@@ -168,6 +177,152 @@ public static class OrbisEndpoints
         group.MapGet("/swap", (SystemInfoService service) => Results.Ok(service.GetSwapPercent()));
         group.MapGet("/cpu/temperature", (SystemInfoService service) => Results.Ok(service.GetCpuTemperature()));
     }
+
+    /// <summary>
+    /// The push channel the pages listen to, so that they ask for what changed instead of asking
+    /// every few seconds. Two kinds of message: <c>rows</c> when a live row moved (the page redoes
+    /// its partial) and <c>stats</c> with the counters themselves (the page paints them, with no
+    /// request at all). The sampling stays on the server, where the value comes from anyway:
+    /// sampling is unavoidable, being asked again by every window is not.
+    /// </summary>
+    private static void MapUpdates(IEndpointRouteBuilder app)
+    {
+        app.MapGet("/updates", async (
+            HttpContext context,
+            LiveChangeNotifier notifier,
+            SystemInfoService systemInfo,
+            CancellationToken token) =>
+        {
+            var watchRows = Watches(context.Request, "rows");
+            var watchStats = Watches(context.Request, "stats");
+            if (!watchRows && !watchStats)
+            {
+                return Results.Empty;
+            }
+
+            var response = context.Response;
+            response.Headers.ContentType = "text/event-stream";
+            response.Headers.CacheControl = "no-cache, no-store";
+            response.Headers["X-Accel-Buffering"] = "no";
+
+            // Where the client stands: the change the page drew, or where a reconnect resumes from.
+            var version = LastVersion(context.Request);
+
+            async Task WriteAsync(string name, string data, bool numbered = false)
+            {
+                // Only a change carries the id: it is what the browser sends back as Last-Event-ID
+                // after a reconnect, so a resumed stream repeats nothing the page already has. A
+                // counter would put a number there that means nothing, and lose the change number.
+                var head = numbered ? $"id: {version.ToString(CultureInfo.InvariantCulture)}\n" : string.Empty;
+                await response.WriteAsync($"{head}event: {name}\ndata: {data}\n\n", token).ConfigureAwait(false);
+                await response.Body.FlushAsync(token).ConfigureAwait(false);
+            }
+
+            using var statsTimer = watchStats ? new PeriodicTimer(StatsInterval) : null;
+
+            try
+            {
+                // A hello, which is the only thing the page is told before something happens: it
+                // says how long to wait before trying again after a dropped stream, and it is what
+                // makes the answer of the browser come now instead of at the first message.
+                await response.WriteAsync($"retry: {ReconnectMilliseconds}\n\n", token).ConfigureAwait(false);
+                await response.Body.FlushAsync(token).ConfigureAwait(false);
+
+                // Both sources are awaited together: a change must not hold back the counters, and a
+                // counter tick must not be waited for by a page that does not want them. A source
+                // nobody watches stays pending until the client goes away.
+                var rows = watchRows ? notifier.WaitAsync(version, token) : NeverRows(version, token);
+                var stats = statsTimer is not null ? statsTimer.WaitForNextTickAsync(token).AsTask() : NeverStats(token);
+
+                while (true)
+                {
+                    var first = await Task.WhenAny(rows, stats).ConfigureAwait(false);
+
+                    if (first == rows)
+                    {
+                        version = await rows.ConfigureAwait(false);
+                        if (watchRows)
+                        {
+                            await WriteAsync("rows", version.ToString(CultureInfo.InvariantCulture), numbered: true).ConfigureAwait(false);
+                        }
+
+                        rows = watchRows ? notifier.WaitAsync(version, token) : NeverRows(version, token);
+                    }
+                    else
+                    {
+                        await WriteAsync("stats", StatsJson(systemInfo)).ConfigureAwait(false);
+                        stats = statsTimer is not null ? statsTimer.WaitForNextTickAsync(token).AsTask() : NeverStats(token);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // The window was closed or the page was left: the browser reconnects on its own and
+                // resumes from the last change it saw, so this is the ordinary end of a stream.
+            }
+
+            return Results.Empty;
+        });
+    }
+
+    /// <summary>
+    /// A source nobody asked to hear: it stays pending until the client goes away, so the loop
+    /// waits on the other one without spinning.
+    /// </summary>
+    private static Task Never(CancellationToken token) => Task.Delay(Timeout.InfiniteTimeSpan, token);
+
+    private static async Task<long> NeverRows(long version, CancellationToken token)
+    {
+        await Never(token).ConfigureAwait(false);
+        return version;
+    }
+
+    private static async Task<bool> NeverStats(CancellationToken token)
+    {
+        await Never(token).ConfigureAwait(false);
+        return true;
+    }
+
+    /// <summary>
+    /// A closed connection is not an error: the browser reconnects and resumes from the last change
+    /// it saw, which travels in the Last-Event-ID header.
+    /// </summary>
+    private static long LastVersion(HttpRequest request)
+    {
+        var raw = request.Headers["Last-Event-ID"].FirstOrDefault() ?? request.Query["since"].FirstOrDefault();
+
+        return long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var version) && version > 0
+            ? version
+            : 0;
+    }
+
+    /// <summary>What the page wants to hear about, as a comma separated <c>watch</c> list.</summary>
+    private static bool Watches(HttpRequest request, string what) =>
+        request.Query["watch"]
+            .FirstOrDefault()?
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Contains(what, StringComparer.OrdinalIgnoreCase) is true;
+
+    /// <summary>
+    /// The counters keyed by their field name without the unit suffix, so that the page can match
+    /// them to its meters: the answers are <c>cpu_percent</c>, <c>ram_percent</c>,
+    /// <c>swap_percent</c> and <c>cpu_temperature</c>.
+    /// </summary>
+    private static string StatsJson(SystemInfoService systemInfo)
+    {
+        var values = new Dictionary<string, int>(4, StringComparer.Ordinal);
+        foreach (var stat in systemInfo.GetAllSystemInfo())
+        {
+            values[StripPercent(stat.Field ?? string.Empty)] = stat.Value;
+        }
+
+        return JsonSerializer.Serialize(values);
+    }
+
+    private const string PercentSuffix = "_percent";
+
+    private static string StripPercent(string field) =>
+        field.EndsWith(PercentSuffix, StringComparison.Ordinal) ? field[..^PercentSuffix.Length] : field;
 
     /// <summary>Writes the <c>{ response, message }</c> envelope with the Spring status code.</summary>
     private static IResult AsResult(MessageResponse response) =>
