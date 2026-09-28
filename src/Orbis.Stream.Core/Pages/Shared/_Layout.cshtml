@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/css/fluent.css" />
     <script>
         (function() {
-            var theme = localStorage.getItem('orbis-theme') || 'system';
+            var theme = localStorage.getItem('orbis-theme') || 'dark';
             if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             } else {
@@ -36,7 +36,6 @@
         <div class="segmented-control" role="radiogroup" aria-label="Theme">
             <button type="button" class="segment" data-theme-set="light" title="Light" aria-label="Light Theme"><i class="icon">&#xE706;</i></button>
             <button type="button" class="segment" data-theme-set="dark" title="Dark" aria-label="Dark Theme"><i class="icon">&#xE708;</i></button>
-            <button type="button" class="segment" data-theme-set="system" title="System" aria-label="System Theme"><i class="icon">&#xE7F4;</i></button>
         </div>
         <form>
             <label class="field">
