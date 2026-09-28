@@ -146,7 +146,7 @@
                 <div class="row-card">
                     <i class="icon lead">&#xE72E;</i>
                     <span class="grow truncate" title="@video.VideoPath">@video.VideoPath</span>
-                    <form method="post" asp-page-handler="Unlock" asp-route-videoKey="@video.VideoKey" asp-all-route-data="Model.FilterRoute">
+                    <form method="post" asp-page-handler="Unlock" asp-all-route-data="Model.UnlockRoute(video.VideoKey)">
                         <button class="btn"><i class="icon">&#xE785;</i>@T["unlockVideoButton"]</button>
                     </form>
                 </div>
@@ -161,7 +161,7 @@
 @if (Model.LinkPkid is { } linkPkid && Model.Form is not null)
 {
     <dialog class="dialog wide" data-open>
-        <form method="post" asp-page-handler="Link" asp-route-pkid="@linkPkid" asp-all-route-data="Model.FilterRoute">
+        <form method="post" asp-page-handler="Link" asp-all-route-data="Model.RowRoute(linkPkid)">
             <div class="dialog-body">
                 <h2>@T["connectVideoSetting"]</h2>
                 <partial name="_VideoSettingFields" for="Form" />

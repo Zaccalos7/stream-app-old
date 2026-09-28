@@ -92,6 +92,7 @@
   "stopLiveIconLabel": "Live stoppen",
   "startLiveIconLabel": "Live starten",
   "restartLiveIconLabel": "Live neu starten",
+  "addedSuccessfully": "Erfolgreich hinzugefügt",
   "connectVideoSetting": "Videoeinstellung verknüpfen",
   "connectAudioSetting": "Einstellung verbunden",
   "payMeAWeasel": "Zahl mir ein Wiesel, wenn du willst",
@@ -105,6 +106,7 @@
   "noActiveStreamingConfiguration": "Keine aktive Streaming-Konfiguration",
   "startNewLiveTitle": "Neuen Live-Stream starten",
   "channel": "Kanal",
+  "platform": "Plattform",
   "selectChannel": "Kanal auswählen",
   "untitled": "Ohne Titel",
   "titlePlaceholder": "Titel für den Live-Stream eingeben",
@@ -131,5 +133,10 @@
   "duplicateConfiguration": "Konfiguration duplizieren",
   "copySuffix": "Kopie",
   "warning": "Warnung",
-  "settingAlreadyPresent": "Diese Konfiguration ist bereits vorhanden"
+  "settingAlreadyPresent": "Diese Konfiguration ist bereits vorhanden",
+  "showStreamKey": "Stream-Schlüssel anzeigen",
+  "hideStreamKey": "Stream-Schlüssel verbergen",
+  "dropVideoFolderHint": "Ziehe ein Video oder einen Ordner hierher, der Pfad wird in das Feld kopiert",
+  "dropVideoFolderDone": "Pfad aus dem Gezogenen kopiert",
+  "openLivePage": "Live-Seite öffnen"
 }

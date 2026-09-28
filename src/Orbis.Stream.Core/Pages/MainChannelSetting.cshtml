@@ -70,7 +70,7 @@
 
 @if (editing is not null)
 {
-    <dialog class="dialog" data-open>
+    <dialog class="dialog wide" data-open>
         <form method="post" asp-page-handler="Save" asp-route-platform="@Model.Platform" asp-route-active="@Model.Active">
             <input type="hidden" name="id" value="@editing.Id" />
             <div class="dialog-body">
@@ -87,7 +87,7 @@
                         </label>
                     }
                 </div>
-                <div class="form-grid section">
+                <div class="form-grid section pair">
                     <label class="field">
                         <span>@T["channelName"]</span>
                         <input class="input" name="channelName" value="@editing.ChannelName" required />
@@ -98,11 +98,19 @@
                     </label>
                     <label class="field">
                         <span>@T["key"]</span>
-                        <input class="input" name="streamKey" type="password" value="@editing.StreamKey" autocomplete="off" required />
+                        <div class="input-affix">
+                            <input class="input" name="streamKey" type="password" value="@editing.StreamKey" autocomplete="off" required
+                                   data-reveal-label-show="@T["showStreamKey"]" data-reveal-label-hide="@T["hideStreamKey"]" />
+                            <button class="reveal" type="button" data-reveal aria-pressed="false" title="@T["showStreamKey"]" aria-label="@T["showStreamKey"]">
+                                <i class="icon">&#xE7B3;</i>
+                            </button>
+                        </div>
                     </label>
-                    <label class="field">
+                    <label class="field dropzone">
                         <span>@T["videoPathFolder"]</span>
-                        <input class="input" name="videoFolder" value="@editing.VideoFolder" placeholder="C:\Video" required data-drop-path />
+                        <input class="input" name="videoFolder" value="@editing.VideoFolder" placeholder="C:\Video" required
+                               data-drop-path data-drop-done="@T["dropVideoFolderDone"]" />
+                        <small><i class="icon">&#xE8B7;</i><span>@T["dropVideoFolderHint"]</span></small>
                     </label>
                 </div>
                 <label class="field section">

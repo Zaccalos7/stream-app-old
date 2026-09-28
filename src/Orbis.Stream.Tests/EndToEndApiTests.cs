@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Builder;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Orbis.Stream.Core.Configuration;
 using Orbis.Stream.Core.Hosting;
 
@@ -439,6 +440,79 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
         // unlockVideo answered HttpStatus.ACCEPTED: the unlock runs in the task executor.
         using var lockResponse = await _fixture.Client.PutAsync($"/video/unlockVideo?videoKey={video.Pkid}", null);
         Assert.Equal(HttpStatusCode.Accepted, lockResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task MainLive_RowFormsCarryTheVideoKeyInTheirAction()
+    {
+        // asp-all-route-data replaces the whole route value dictionary, so the asp-route-pkid of the
+        // sibling attribute was silently dropped and Stop/Replay/Unlock ran with pkid = 0, which the
+        // services reported as "Video non trovato".
+        var folder = Path.Combine(_fixture.DataDirectory, "row-forms");
+        Directory.CreateDirectory(folder);
+        await File.WriteAllBytesAsync(Path.Combine(folder, "row.mp4"), [0x00, 0x01, 0x02]);
+
+        using var started = await _fixture.Client.PostAsJsonAsync("/live/start-live", new
+        {
+            streamUrl = "rtmp://ingest.example/live",
+            streamKey = "stream-key",
+            videoPath = folder,
+            platformStreamName = "channel-e2e-row",
+            channelName = "channel-e2e-row",
+            videoSettingsRecord = new
+            {
+                id = TwitchVideoSettingId,
+                title = "Twitch",
+                isDefaultConfiguration = true,
+                defaultPlatformConfiguration = "Twitch",
+                videoCodec = 27,
+                videoCodecName = "libx264",
+                pixelFormat = 0,
+                videoBitrate = 5_000_000,
+                videoFormat = "flv",
+                gopSize = 2,
+                isVideoAndAudioSettingActive = true,
+                audioSettingRecord = new { audioCodec = 86018, audioBitrate = 128_000 }
+            }
+        });
+        Assert.Equal(HttpStatusCode.Accepted, started.StatusCode);
+
+        var pkid = 0;
+        for (var attempt = 0; attempt < 40 && pkid == 0; attempt++)
+        {
+            using var list = await _fixture.Client.GetAsync("/video/getPage?size=200&sort=pkid,desc");
+            var page = await list.Content.ReadFromJsonAsync<JsonElement>();
+            pkid = page.GetProperty("content").EnumerateArray()
+                .Where(item => item.GetProperty("name").GetString() == "row.mp4")
+                .Select(item => item.GetProperty("pkid").GetInt32())
+                .FirstOrDefault();
+            if (pkid == 0)
+            {
+                await Task.Delay(250);
+            }
+        }
+
+        Assert.NotEqual(0, pkid);
+
+        using var html = await _fixture.Client.GetAsync("/orbis/mainLive?channelName=channel-e2e-row");
+        var body = await html.Content.ReadAsStringAsync();
+
+        var actions = Regex.Matches(body, "<form[^>]*>")
+            .Select(match => match.Value)
+            .Where(form => form.Contains("action=\"", StringComparison.Ordinal))
+            .Where(form => form.Contains("handler=Stop", StringComparison.Ordinal)
+                || form.Contains("handler=Replay", StringComparison.Ordinal)
+                || form.Contains("handler=Unlock", StringComparison.Ordinal))
+            .Select(form => form[form.IndexOf("action=\"", StringComparison.Ordinal)..])
+            .ToList();
+
+        var rowForms = actions.Where(action => !action.Contains("handler=Unlock", StringComparison.Ordinal)).ToList();
+        Assert.NotEmpty(rowForms);
+        Assert.All(rowForms, action => Assert.Matches(@"[?&]pkid=\d+", action));
+        Assert.Contains(rowForms, action => action.Contains($"pkid={pkid}", StringComparison.Ordinal));
+
+        var unlockForms = actions.Where(action => action.Contains("handler=Unlock", StringComparison.Ordinal)).ToList();
+        Assert.All(unlockForms, action => Assert.Matches(@"[?&]videoKey=\d+", action));
     }
 
     /// <summary>The live page needs the platform (history) and the setting of every video.</summary>

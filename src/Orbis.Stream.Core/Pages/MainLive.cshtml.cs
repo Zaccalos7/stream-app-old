@@ -45,13 +45,36 @@ public sealed class MainLiveModel(
 
     public object Filters => new { LiveStatus, ChannelName, p = PageIndex };
 
-    /// <summary>Same filters as route data of the row forms, so every action comes back to the same view.</summary>
-    public Dictionary<string, string> FilterRoute => new()
+    /// <summary>
+    /// The filters (and, when the form acts on a row, its key) as route data, so every action
+    /// comes back to the same view. Both must travel in <c>asp-all-route-data</c>: that attribute
+    /// replaces the whole route value dictionary, so a sibling <c>asp-route-pkid</c> would be
+    /// dropped and the handler would run with <c>pkid = 0</c>.
+    /// </summary>
+    public Dictionary<string, string> FilterRoute => RouteOf();
+
+    /// <summary>Filters plus the <c>pkid</c> of the row the form acts on.</summary>
+    public Dictionary<string, string> RowRoute(int? pkid) => RouteOf("pkid", pkid);
+
+    /// <summary>Filters plus the <c>videoKey</c> of the locked video the unlock form acts on.</summary>
+    public Dictionary<string, string> UnlockRoute(int? videoKey) => RouteOf("videoKey", videoKey);
+
+    private Dictionary<string, string> RouteOf(string? key = null, int? value = null)
     {
-        ["liveStatus"] = LiveStatus ?? string.Empty,
-        ["channelName"] = ChannelName ?? string.Empty,
-        ["p"] = PageIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)
-    };
+        var route = new Dictionary<string, string>
+        {
+            ["liveStatus"] = LiveStatus ?? string.Empty,
+            ["channelName"] = ChannelName ?? string.Empty,
+            ["p"] = PageIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        };
+
+        if (key is not null)
+        {
+            route[key] = (value ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return route;
+    }
 
     public void OnGet(int? link)
     {

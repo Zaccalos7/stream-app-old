@@ -106,6 +106,7 @@
   "noActiveStreamingConfiguration": "Aucune configuration de streaming active",
   "startNewLiveTitle": "Démarrer un nouveau direct",
   "channel": "Chaîne",
+  "platform": "Plateforme",
   "selectChannel": "Sélectionner une chaîne",
   "untitled": "Sans titre",
   "titlePlaceholder": "Entrez un titre pour la diffusion en direct",
@@ -132,5 +133,10 @@
   "duplicateConfiguration": "Dupliquer la configuration",
   "copySuffix": "Copie",
   "warning": "Avertissement",
-  "settingAlreadyPresent": "Cette configuration est déjà présente"
+  "settingAlreadyPresent": "Cette configuration est déjà présente",
+  "showStreamKey": "Afficher la clé de diffusion",
+  "hideStreamKey": "Masquer la clé de diffusion",
+  "dropVideoFolderHint": "Glissez ici une vidéo ou un dossier : son chemin est copié dans le champ",
+  "dropVideoFolderDone": "Chemin copié depuis l'élément glissé",
+  "openLivePage": "Ouvrir la page du direct"
 }

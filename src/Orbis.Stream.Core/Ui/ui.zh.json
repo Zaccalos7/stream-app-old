@@ -106,6 +106,7 @@
   "noActiveStreamingConfiguration": "没有启用的直播配置",
   "startNewLiveTitle": "开始新直播",
   "channel": "频道",
+  "platform": "平台",
   "selectChannel": "选择频道",
   "untitled": "无标题",
   "titlePlaceholder": "请输入直播标题",
@@ -132,5 +133,10 @@
   "duplicateConfiguration": "复制配置",
   "copySuffix": "副本",
   "warning": "警告",
-  "settingAlreadyPresent": "此配置已存在"
+  "settingAlreadyPresent": "此配置已存在",
+  "showStreamKey": "显示推流密钥",
+  "hideStreamKey": "隐藏推流密钥",
+  "dropVideoFolderHint": "把视频或文件夹拖到这里，路径会自动复制到输入框",
+  "dropVideoFolderDone": "已复制拖入内容的路径",
+  "openLivePage": "打开直播页面"
 }

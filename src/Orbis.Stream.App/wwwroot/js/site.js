@@ -58,20 +58,85 @@ document.addEventListener("change", event => {
 
 // <input data-drop-path>: dropping a file or folder on it fills its absolute path. The browser
 // never exposes paths, so the dropped File goes to the WebView2 host, which answers with its path.
+// The whole field is the target (so the hint under it counts too) and lights up while the drag is
+// over it, because a drop has no other visible sign until the path appears.
 // Drops anywhere else are swallowed: by default WebView2 would navigate away to the file.
 let dropTarget = null;
-document.addEventListener("dragover", event => event.preventDefault());
+let dropZone = null;
+let dropHint = "";
+let dropHintTimer = 0;
+
+const dropFieldOf = event => {
+  const hit = event.target;
+  return hit.closest?.("[data-drop-path]") || hit.closest?.(".dropzone")?.querySelector("[data-drop-path]");
+};
+
+document.addEventListener("dragover", event => {
+  event.preventDefault();
+  const field = dropFieldOf(event);
+  if (!field) return;
+  const zone = field.closest(".dropzone");
+  if (zone === dropZone) return;
+  dropZone?.classList.remove("is-over");
+  dropZone = zone;
+  dropZone?.classList.add("is-over");
+});
+
+document.addEventListener("dragleave", event => {
+  if (!dropZone || dropZone.contains(event.relatedTarget)) return;
+  dropZone.classList.remove("is-over");
+});
+
 document.addEventListener("drop", event => {
   event.preventDefault();
-  const input = event.target.closest?.("[data-drop-path]");
+  const field = dropFieldOf(event);
   const files = event.dataTransfer?.files;
-  if (!input || !files?.length || !window.chrome?.webview) return;
-  dropTarget = input;
+  dropZone?.classList.remove("is-over");
+  dropZone = null;
+  if (!field || !files?.length || !window.chrome?.webview) return;
+  dropTarget = field;
+  dropZone = field.closest(".dropzone");
   window.chrome.webview.postMessageWithAdditionalObjects("dropPath", files);
 });
+
 window.chrome?.webview?.addEventListener("message", event => {
   if (!dropTarget || typeof event.data !== "string") return;
   dropTarget.value = event.data;
   dropTarget.dispatchEvent(new Event("input", { bubbles: true }));
+
+  // The path is in the field, but nothing says it came from the drop: say it for a couple of seconds.
+  const zone = dropZone;
+  const hint = zone?.querySelector("small span");
+  if (hint) {
+    if (!dropHint) dropHint = hint.textContent;
+    hint.textContent = dropTarget.dataset.dropDone || hint.textContent;
+    zone.classList.add("is-dropped");
+    clearTimeout(dropHintTimer);
+    dropHintTimer = setTimeout(() => {
+      hint.textContent = dropHint;
+      zone.classList.remove("is-dropped");
+    }, 3000);
+  }
+
   dropTarget = null;
+  dropZone = null;
+});
+
+// <button data-reveal> glued to a password input: shows or hides the value. It is always in the
+// markup, so the key of a stored configuration can be checked in the edit form too, not only while
+// it is being typed for the first time.
+document.addEventListener("click", event => {
+  const button = event.target.closest?.("[data-reveal]");
+  if (!button) return;
+  const field = button.parentElement?.querySelector("input");
+  if (!field) return;
+
+  const showing = field.type === "text";
+  field.type = showing ? "password" : "text";
+  button.setAttribute("aria-pressed", showing ? "false" : "true");
+  const label = showing ? field.dataset.revealLabelShow : field.dataset.revealLabelHide;
+  if (label) {
+    button.title = label;
+    button.setAttribute("aria-label", label);
+  }
 });

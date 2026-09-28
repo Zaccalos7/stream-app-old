@@ -106,6 +106,7 @@
   "noActiveStreamingConfiguration": "Nessuna configurazione di streaming attiva",
   "startNewLiveTitle": "Avvia Nuova Live",
   "channel": "Canale",
+  "platform": "Piattaforma",
   "selectChannel": "Canale selezionato",
   "untitled": "Senza titolo",
   "titlePlaceholder": "Inserisci un titolo per la live",
@@ -132,5 +133,10 @@
   "duplicateConfiguration": "Duplica configurazione",
   "copySuffix": "Copia",
   "warning": "Attenzione",
-  "settingAlreadyPresent": "Questa configurazione è già presente"
+  "settingAlreadyPresent": "Questa configurazione è già presente",
+  "showStreamKey": "Mostra la chiave di stream",
+  "hideStreamKey": "Nascondi la chiave di stream",
+  "dropVideoFolderHint": "Trascina qui un video o una cartella: il percorso viene copiato nel campo",
+  "dropVideoFolderDone": "Percorso copiato da ciò che hai trascinato",
+  "openLivePage": "Apri la pagina della live"
 }

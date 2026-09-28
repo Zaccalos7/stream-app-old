@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Orbis.Stream.Core.Hosting;
 using Orbis.Stream.Core.Data;
 using Orbis.Stream.Core.Domain;
+using Orbis.Stream.Core.Pages;
 
 namespace Orbis.Stream.Tests;
 
@@ -237,4 +238,67 @@ public sealed class UserPathTests
     [InlineData("/videos/clip.mp4", "/videos/clip.mp4")]
     public void NormalizeUserPath_StripsCopyAsPathQuotes(string input, string expected) =>
         Assert.Equal(expected, Orbis.Stream.Core.Services.StreamingService.NormalizeUserPath(input));
+}
+
+public sealed class LiveLinkTests
+{
+    private const string Twitch = "rtmp://live.twitch.tv/app";
+    private const string YouTube = "rtmps://a.rtmp.youtube.com/live2";
+
+    [Fact]
+    public void PlatformOf_ReadsTheIngestOfTheLive()
+    {
+        Assert.Equal("twitch", LiveLinkView.PlatformOf(Twitch));
+        Assert.Equal("youtube", LiveLinkView.PlatformOf(YouTube));
+    }
+
+    [Theory]
+    [InlineData("rtmp://live-double.twitch.tv/app:80")]
+    [InlineData("rtmp://my.cdn.example/live")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void PlatformOf_HasNoAnswerForAnIngestItDoesNotKnow(string? streamUrl) =>
+        Assert.Null(LiveLinkView.PlatformOf(streamUrl));
+
+    [Fact]
+    public void UrlOf_TwitchIsTheChannelPage()
+    {
+        Assert.Equal("https://www.twitch.tv/reproChannel", LiveLinkView.UrlOf(Twitch, "reproChannel"));
+        Assert.Equal("https://www.twitch.tv/reproChannel", LiveLinkView.UrlOf(Twitch, "  reproChannel "));
+    }
+
+    [Fact]
+    public void UrlOf_YouTubeIsTheLiveTabOfTheHandle()
+    {
+        Assert.Equal("https://www.youtube.com/@reproChannel/live", LiveLinkView.UrlOf(YouTube, "reproChannel"));
+    }
+
+    [Fact]
+    public void UrlOf_YouTubeDoesNotDoubleTheAtOfTheHandle()
+    {
+        Assert.Equal("https://www.youtube.com/@reproChannel/live", LiveLinkView.UrlOf(YouTube, "@reproChannel"));
+    }
+
+    [Fact]
+    public void UrlOf_EscapesWhatWouldBreakTheAddress() =>
+        Assert.Equal("https://www.twitch.tv/a%20b", LiveLinkView.UrlOf(Twitch, "a b"));
+
+    [Theory]
+    [InlineData("rtmp://my.cdn.example/live", "reproChannel")]
+    [InlineData(Twitch, "")]
+    [InlineData(Twitch, "   ")]
+    [InlineData(Twitch, null)]
+    public void UrlOf_HasNoLinkWithoutAPlatformOrAChannel(string? streamUrl, string? platformStreamName) =>
+        Assert.Null(LiveLinkView.UrlOf(streamUrl, platformStreamName));
+
+    [Fact]
+    public void LabelAndGlyph_AreTheOnesOfTheConfigurationForm()
+    {
+        Assert.Equal("Twitch", LiveLinkView.LabelOf("twitch"));
+        Assert.Equal("YouTube", LiveLinkView.LabelOf("youtube"));
+        Assert.Equal("\uE93E", LiveLinkView.GlyphOf("twitch"));
+        Assert.Equal("\uE714", LiveLinkView.GlyphOf("youtube"));
+        Assert.Equal("\uE714", LiveLinkView.GlyphOf("anythingElse"));
+        Assert.Null(LiveLinkView.LabelOf("anythingElse"));
+    }
 }

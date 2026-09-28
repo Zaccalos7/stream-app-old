@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Web.WebView2.Core;
@@ -46,6 +47,7 @@ public partial class MainWindow : Window
                 CoreWebView2HostResourceAccessKind.Allow);
             Browser.CoreWebView2.Navigate(_options.ApplicationEntryPoint);
             Browser.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
+            Browser.CoreWebView2.NewWindowRequested += OnNewWindowRequested;
             Browser.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
         }
         catch (Exception exception)
@@ -68,6 +70,33 @@ public partial class MainWindow : Window
             // cancelled navigation (a quick double click) must not hide it again.
             LoadingBar.Visibility = Visibility.Collapsed;
             StatusText.Text = $"Il browser non riesce a raggiungere {_options.ApplicationUrl}.";
+        }
+    }
+
+    /// <summary>
+    /// A link that opens in another window (the page of a live on Twitch or YouTube, the coffee
+    /// page): the WebView would replace the whole application with the site, so the browser of the
+    /// system takes it. Only http and https are handed over: the URI reaches a shell that runs
+    /// whatever it is given.
+    /// </summary>
+    private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)
+    {
+        e.Handled = true;
+
+        if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) || (uri.Scheme != "http" && uri.Scheme != "https"))
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
+        }
+        catch (Exception exception)
+        {
+            // The window is on top of the application, so there is nowhere to report it: the link
+            // simply does nothing. A failure here must not take the application down.
+            System.Diagnostics.Debug.WriteLine($"Impossibile aprire {uri.AbsoluteUri}: {exception.Message}");
         }
     }
 

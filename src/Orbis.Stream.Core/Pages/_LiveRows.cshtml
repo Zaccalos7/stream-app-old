@@ -27,6 +27,12 @@ else
                 var hasSetting = video.VideoSetting is not null;
                 var live = status == LiveStatus.Live;
                 var platform = video.VideoLiveHistory?.PlatformStreamName;
+
+                // Only a live that is running can be watched, and only a known platform has a page.
+                var livePlatform = live ? LiveLinkView.PlatformOf(video.VideoLiveHistory?.StreamUrl) : null;
+                var liveUrl = livePlatform is null ? null : LiveLinkView.UrlOf(video.VideoLiveHistory?.StreamUrl, platform);
+                var liveLabel = LiveLinkView.LabelOf(livePlatform);
+                var liveTitle = T["openLivePage"] + (string.IsNullOrEmpty(liveLabel) ? "" : " (" + liveLabel + ")");
                 <tr>
                     <td><span class="badge @LiveStatusView.Css(status)">@T[LiveStatusView.Key(status)]</span></td>
                     <td class="path">
@@ -37,15 +43,21 @@ else
                     <td>@LiveStatusView.Date(video.StartDateLive, "dd/MM/yyyy HH:mm:ss")</td>
                     <td>
                         <div class="actions">
+                            @if (liveUrl is not null)
+                            {
+                                <a class="btn subtle icon-only" href="@liveUrl" target="_blank" rel="noopener noreferrer" title="@liveTitle" aria-label="@liveTitle">
+                                    <i class="icon">@LiveLinkView.GlyphOf(livePlatform)</i>
+                                </a>
+                            }
                             @if (hasSetting)
                             {
-                                <form method="post" asp-page="/MainLive" asp-page-handler="Stop" asp-route-pkid="@video.Pkid" asp-all-route-data="Model.FilterRoute" data-confirm="@T["stopLive"]">
+                                <form method="post" asp-page="/MainLive" asp-page-handler="Stop" asp-all-route-data="Model.RowRoute(video.Pkid)" data-confirm="@T["stopLive"]">
                                     <button class="btn subtle icon-only danger" disabled="@(!live)" title="@T["stopLiveIconLabel"]" aria-label="@T["stopLiveIconLabel"]"><i class="icon">&#xE71A;</i></button>
                                 </form>
-                                <form method="post" asp-page="/MainLive" asp-page-handler="Replay" asp-route-pkid="@video.Pkid" asp-all-route-data="Model.FilterRoute" data-confirm="@T["startLiveAlert"]">
+                                <form method="post" asp-page="/MainLive" asp-page-handler="Replay" asp-all-route-data="Model.RowRoute(video.Pkid)" data-confirm="@T["startLiveAlert"]">
                                     <button class="btn subtle icon-only" disabled="@live" title="@T["startLiveIconLabel"]" aria-label="@T["startLiveIconLabel"]"><i class="icon">&#xE768;</i></button>
                                 </form>
-                                <form method="post" asp-page="/MainLive" asp-page-handler="Replay" asp-route-pkid="@video.Pkid" asp-all-route-data="Model.FilterRoute" data-confirm="@T["startLiveAlert"]">
+                                <form method="post" asp-page="/MainLive" asp-page-handler="Replay" asp-all-route-data="Model.RowRoute(video.Pkid)" data-confirm="@T["startLiveAlert"]">
                                     <button class="btn subtle icon-only" title="@T["restartLiveIconLabel"]" aria-label="@T["restartLiveIconLabel"]"><i class="icon">&#xE72C;</i></button>
                                 </form>
                             }

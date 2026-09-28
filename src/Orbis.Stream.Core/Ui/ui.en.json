@@ -106,6 +106,7 @@
   "noActiveStreamingConfiguration": "No active streaming configuration",
   "startNewLiveTitle": "Start New Live Stream",
   "channel": "Channel",
+  "platform": "Platform",
   "selectChannel": "Selected channel",
   "untitled": "Untitled",
   "titlePlaceholder": "Enter a title for the live stream",
@@ -132,5 +133,10 @@
   "duplicateConfiguration": "Duplicate configuration",
   "copySuffix": "Copy",
   "warning": "Warning",
-  "settingAlreadyPresent": "This configuration is already present"
+  "settingAlreadyPresent": "This configuration is already present",
+  "showStreamKey": "Show stream key",
+  "hideStreamKey": "Hide stream key",
+  "dropVideoFolderHint": "Drag a video or a folder here and its path is copied into the field",
+  "dropVideoFolderDone": "Path copied from what you dropped",
+  "openLivePage": "Open the live page"
 }

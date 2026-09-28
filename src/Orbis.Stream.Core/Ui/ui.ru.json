@@ -106,6 +106,7 @@
   "noActiveStreamingConfiguration": "Нет активных конфигураций трансляции",
   "startNewLiveTitle": "Начать новую трансляцию",
   "channel": "Канал",
+  "platform": "Платформа",
   "selectChannel": "Выбрать канал",
   "untitled": "Без названия",
   "titlePlaceholder": "Введите название для трансляции",
@@ -132,5 +133,10 @@
   "duplicateConfiguration": "Дублировать конфигурацию",
   "copySuffix": "Копия",
   "warning": "Предупреждение",
-  "settingAlreadyPresent": "Эта конфигурация уже существует"
+  "settingAlreadyPresent": "Эта конфигурация уже существует",
+  "showStreamKey": "Показать ключ трансляции",
+  "hideStreamKey": "Скрыть ключ трансляции",
+  "dropVideoFolderHint": "Перетащите сюда видео или папку — путь скопируется в поле",
+  "dropVideoFolderDone": "Путь скопирован из перетащенного объекта",
+  "openLivePage": "Открыть страницу трансляции"
 }

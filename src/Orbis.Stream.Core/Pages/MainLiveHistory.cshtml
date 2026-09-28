@@ -20,11 +20,13 @@
 else
 {
     <div class="table-wrap">
-        <table class="list">
+        <table class="list roomy">
             <thead>
             <tr>
                 <th>@T["title"]</th>
                 <th>@T["liveStatus"]</th>
+                <th>@T["channel"]</th>
+                <th>@T["platform"]</th>
                 <th>@T["path"]</th>
                 <th>@T["data"]</th>
                 <th>@T["outcome"]</th>
@@ -33,11 +35,25 @@ else
             <tbody>
             @foreach (var video in Model.Videos.Content)
             {
+                var history = video.VideoLiveHistory;
+                var platform = LiveLinkView.PlatformOf(history?.StreamUrl);
+                var platformLabel = LiveLinkView.LabelOf(platform);
                 <tr>
                     <td>@video.Name</td>
                     <td><span class="badge @LiveStatusView.Css(video.LiveStatus)">@T[LiveStatusView.Key(video.LiveStatus)]</span></td>
+                    <td>@(video.ChannelName ?? "N/A")</td>
+                    <td>
+                        @if (platform is not null)
+                        {
+                            <span class="platform"><i class="icon">@LiveLinkView.GlyphOf(platform)</i>@platformLabel</span>
+                        }
+                        else
+                        {
+                            <span class="muted" title="@history?.StreamUrl">–</span>
+                        }
+                    </td>
                     <td class="path"><div class="truncate" title="@video.VideoPath">@video.VideoPath</div></td>
-                    <td>@LiveStatusView.Date(video.VideoLiveHistory?.LocalDateTimeStartLive, "dd-MM-yyyy HH:mm:ss")</td>
+                    <td class="nowrap">@LiveStatusView.Date(history?.LocalDateTimeStartLive, "dd-MM-yyyy HH:mm:ss")</td>
                     <td>@video.Message</td>
                 </tr>
             }

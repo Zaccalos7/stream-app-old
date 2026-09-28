@@ -106,6 +106,7 @@
   "noActiveStreamingConfiguration": "No hay ninguna configuración de transmisión activa",
   "startNewLiveTitle": "Iniciar nuevo directo",
   "channel": "Canal",
+  "platform": "Plataforma",
   "selectChannel": "Seleccione un canal",
   "untitled": "Sin título",
   "titlePlaceholder": "Ingrese un título para la transmisión en vivo",
@@ -132,5 +133,10 @@
   "duplicateConfiguration": "Duplicar configuración",
   "copySuffix": "Copia",
   "warning": "Advertencia",
-  "settingAlreadyPresent": "Esta configuración ya está presente"
+  "settingAlreadyPresent": "Esta configuración ya está presente",
+  "showStreamKey": "Mostrar la clave de transmisión",
+  "hideStreamKey": "Ocultar la clave de transmisión",
+  "dropVideoFolderHint": "Arrastra aquí un vídeo o una carpeta y su ruta se copiará en el campo",
+  "dropVideoFolderDone": "Ruta copiada de lo que has arrastrado",
+  "openLivePage": "Abrir la página de la directo"
 }

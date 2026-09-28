@@ -413,9 +413,10 @@ label.field > small { color: var(--text-3); font-size: 12px; }
 
 .input, select.input, textarea.input {
   width: 100%;
-  min-height: 40px;
-  padding: 8px 14px;
+  min-height: 46px;
+  padding: 10px 16px;
   font: inherit;
+  font-size: 15px;
   color: var(--text);
   background: var(--control);
   border: 1.5px solid var(--stroke-strong);
@@ -428,6 +429,46 @@ textarea.input { resize: vertical; }
 .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent); }
 
 .form-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.form-grid.pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Input with a button glued to its right edge (the eye that reveals a stream key). */
+.input-affix { position: relative; display: flex; }
+.input-affix .input { padding-right: 54px; }
+.input-affix .reveal {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--text-2);
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.15s, background 0.15s;
+}
+.input-affix .reveal:hover { color: var(--text); background: var(--tint); }
+.input-affix .reveal[aria-pressed="true"] { color: var(--accent-text); background: var(--tint-strong); }
+
+/* Field that accepts a drop: the hint under it says so, and the border reacts to the drag. */
+.dropzone .input { border-style: dashed; border-width: 2px; }
+.dropzone > small { display: flex; align-items: center; gap: 8px; }
+.dropzone > small .icon { flex: none; font-size: 14px; color: var(--accent); }
+.dropzone.is-over .input {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--tint);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.dropzone.is-over > small { color: var(--accent-text); font-weight: 600; }
+.dropzone.is-dropped .input { border-style: solid; border-color: var(--success); }
+.dropzone.is-dropped > small { color: var(--success); font-weight: 600; }
+.dropzone.is-dropped > small .icon { color: var(--success); }
 
 /* ToggleSwitch */
 .toggle { display: inline-flex; align-items: center; cursor: pointer; }
@@ -485,6 +526,16 @@ table.list tr:last-child td { border-bottom: 0; }
 table.list tbody tr { transition: background 0.15s; }
 table.list tbody tr:hover { background: var(--tint); }
 table.list td.path { max-width: 380px; }
+
+/* History table: it has more columns than the others, so it is given a larger body text, taller
+   rows and a path wide enough to read almost in full. */
+table.list.roomy { font-size: 15px; }
+table.list.roomy th { font-size: 12px; padding: 16px 20px; }
+table.list.roomy td { padding: 18px 20px; }
+table.list.roomy td.path { max-width: 560px; }
+table.list.roomy td.nowrap { white-space: nowrap; }
+.platform { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.platform .icon { font-size: 16px; color: var(--accent-text); }
 
 .toolbar { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin-bottom: 16px; }
 .toolbar label.field { min-width: 200px; }
