@@ -148,7 +148,7 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
     {
         // Two default settings both called "test" are impossible to tell apart in the wizard and in
         // the settings, so the name is the platform they are for.
-        using var response = await _fixture.Client.GetAsync("/videoSetting/getVideoSettings");
+        using var response = await _fixture.Client.GetAsync("/video-setting/getVideoSettings");
         var settings = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         var defaults = settings.EnumerateArray()
@@ -409,7 +409,7 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
             videoSettingsRecord = new
             {
                 id = TwitchVideoSettingId,
-                title = "Twitch",
+                title = "Default Twitch",
                 isDefaultConfiguration = true,
                 defaultPlatformConfiguration = "Twitch",
                 videoCodec = 27,
@@ -495,7 +495,7 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
             videoSettingsRecord = new
             {
                 id = TwitchVideoSettingId,
-                title = "Twitch",
+                title = "Default Twitch",
                 isDefaultConfiguration = true,
                 defaultPlatformConfiguration = "Twitch",
                 videoCodec = 27,
@@ -642,6 +642,10 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
         {
             Assert.Contains($"data-key=\"{key}\"", body, StringComparison.Ordinal);
         }
+
+        // Nothing is measured before the page goes out: the meters start in their loading and the
+        // first sample of the channel ends it.
+        Assert.Contains("data-stats data-state=\"loading\"", body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -665,6 +669,14 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
 
         var line = await reader.ReadLineAsync() ?? string.Empty;
         Assert.StartsWith("data: {", line, StringComparison.Ordinal);
+
+        // Under the names the cards carry, not the API ones ("CPU", "TEMPERATURA CPU"): a name that
+        // does not match leaves the meter on its dash forever, with nothing to say it is wrong.
+        using var values = System.Text.Json.JsonDocument.Parse(line["data: ".Length..]);
+        foreach (var key in new[] { "cpu", "ram", "swap", "cpu_temperature" })
+        {
+            Assert.True(values.RootElement.TryGetProperty(key, out _), $"missing {key} in {line}");
+        }
 
         Assert.Equal(string.Empty, await reader.ReadLineAsync());
 

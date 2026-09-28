@@ -2,33 +2,26 @@
 @{
     // Same labels and thresholds as the React cards: green below 40, amber below 75, red above.
     // Each card carries the name of the counter it shows: the values arrive in the push channel
-    // under those names, and the script paints them where they already are. The markup is the same
-    // whether the value is there or not, so a value that appears or disappears never rebuilds it.
-    (string Key, string Glyph, string Label, string Unit)[] meta =
+    // under those names, and the script paints them where they already are. The page is drawn
+    // before any value is measured, so every card starts with the dash and its loading.
+    (SystemInfoField Field, string Glyph, string Label, string Unit)[] meta =
     [
-        ("cpu", "\uE950", "CPU", "%"),
-        ("ram", "\uE964", "RAM", "%"),
-        ("swap", "\uEDA2", "SWAP", "%"),
-        ("cpu_temperature", "\uE9CA", T["TEMPERATURA_CPU"], "°C")
+        (SystemInfoField.Cpu, "", "CPU", "%"),
+        (SystemInfoField.Ram, "", "RAM", "%"),
+        (SystemInfoField.Swap, "", "SWAP", "%"),
+        (SystemInfoField.CpuTemperature, "", T["TEMPERATURA_CPU"], "°C")
     ];
 }
 <div class="grid">
-    @foreach (var (key, glyph, label, unit) in meta)
+    @foreach (var (field, glyph, label, unit) in meta)
     {
-        var value = key switch
-        {
-            "cpu" => Model.Stat("cpu_percent"),
-            "ram" => Model.Stat("ram_percent"),
-            "swap" => Model.Stat("swap_percent"),
-            _ => Model.Stat("cpu_temperature")
-        };
-        // The providers answer -1 (0 for the temperature) when a value is not available.
-        var available = value is { } answer && answer >= 0 && (unit == "%" || answer > 0);
-        var level = available && value >= 75 ? "bad" : available && value >= 40 ? "warn" : "";
         <div class="card meter">
             <h3><i class="icon">@glyph</i>&nbsp; @label</h3>
-            <div class="ring @level" style="--value: @(available ? Math.Clamp(value!.Value, 0, 100) : 0)" data-label="@(available ? value + unit : "–")" data-key="@key" data-unit="@unit" data-name="@label" role="img" aria-label="@label"></div>
-            <p class="caption" data-no-data hidden="@(!available)">@T["noDataPresent"]</p>
+            <div class="ring" style="--value: 0" data-label="–" data-key="@field.ToMeterKey()" data-unit="@unit" data-name="@label" role="img" aria-label="@label"></div>
+            <p class="caption" data-while="loading">
+                <span class="spinner" aria-hidden="true"></span>&nbsp; @T["loading"]
+            </p>
+            <p class="caption" data-no-data hidden>@T["noDataPresent"]</p>
         </div>
     }
 </div>

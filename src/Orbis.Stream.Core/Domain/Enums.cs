@@ -19,6 +19,19 @@ public static class SystemInfoFieldExtensions
         SystemInfoField.CpuTemperature => "TEMPERATURA CPU",
         _ => field.ToString().ToUpperInvariant()
     };
+
+    /// <summary>
+    /// The name of the meter on the task manager page: the push channel sends each value under it
+    /// and the card that shows it carries the same one, so this is the only place that pairs them.
+    /// </summary>
+    public static string ToMeterKey(this SystemInfoField field) => field switch
+    {
+        SystemInfoField.Cpu => "cpu",
+        SystemInfoField.Ram => "ram",
+        SystemInfoField.Swap => "swap",
+        SystemInfoField.CpuTemperature => "cpu_temperature",
+        _ => field.ToString().ToLowerInvariant()
+    };
 }
 
 /// <summary>Port of <c>com.orbis.stream.enums.VideoExtensionEnum</c>.</summary>

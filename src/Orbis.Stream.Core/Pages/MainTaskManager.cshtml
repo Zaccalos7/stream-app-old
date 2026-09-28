@@ -11,8 +11,8 @@
 </div>
 
 @* The meters are painted by the push channel: the server samples them and sends the values, so the
-   page asks for nothing. *@
-<div data-stats>
+   page asks for nothing. They stay in their loading until the first sample arrives. *@
+<div data-stats data-state="loading">
     <partial name="_Stats" model="Model" />
 </div>
 

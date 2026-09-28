@@ -76,6 +76,9 @@ if (watchStats && stream) {
       const value = values[ring.dataset.key];
       if (typeof value === "number") paintRing(ring, value);
     }
+
+    // The first sample ends the loading the page was drawn with.
+    for (const region of document.querySelectorAll("[data-stats][data-state]")) delete region.dataset.state;
   });
 }
 

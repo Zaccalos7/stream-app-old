@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Orbis.Stream.Core.Contracts;
 using Orbis.Stream.Core.Data;
+using Orbis.Stream.Core.Domain;
 using Orbis.Stream.Core.Http;
 using Orbis.Stream.Core.I18n;
 using Orbis.Stream.Core.Services;
@@ -228,6 +229,13 @@ public static class OrbisEndpoints
                 await response.WriteAsync($"retry: {ReconnectMilliseconds}\n\n", token).ConfigureAwait(false);
                 await response.Body.FlushAsync(token).ConfigureAwait(false);
 
+                // The page opens with empty meters, so the first sample goes out now instead of at
+                // the first tick: waiting for the timer would leave them on the loading a second more.
+                if (watchStats)
+                {
+                    await WriteAsync("stats", StatsJson(systemInfo)).ConfigureAwait(false);
+                }
+
                 // Both sources are awaited together: a change must not hold back the counters, and a
                 // counter tick must not be waited for by a page that does not want them. A source
                 // nobody watches stays pending until the client goes away.
@@ -303,26 +311,28 @@ public static class OrbisEndpoints
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Contains(what, StringComparer.OrdinalIgnoreCase) is true;
 
+    /// <summary>The API names of the counters (the Java contract) paired with the meters of the page.</summary>
+    private static readonly Dictionary<string, string> MeterKeys = Enum.GetValues<SystemInfoField>()
+        .ToDictionary(field => field.ToInfoName(), field => field.ToMeterKey(), StringComparer.Ordinal);
+
     /// <summary>
-    /// The counters keyed by their field name without the unit suffix, so that the page can match
-    /// them to its meters: the answers are <c>cpu_percent</c>, <c>ram_percent</c>,
-    /// <c>swap_percent</c> and <c>cpu_temperature</c>.
+    /// The counters keyed by the meter that shows them: <c>cpu</c>, <c>ram</c>, <c>swap</c> and
+    /// <c>cpu_temperature</c>. The service answers them under the API names ("CPU", "TEMPERATURA
+    /// CPU"), which stay as they are because the REST endpoints return them.
     /// </summary>
     private static string StatsJson(SystemInfoService systemInfo)
     {
-        var values = new Dictionary<string, int>(4, StringComparer.Ordinal);
+        var values = new Dictionary<string, int>(MeterKeys.Count, StringComparer.Ordinal);
         foreach (var stat in systemInfo.GetAllSystemInfo())
         {
-            values[StripPercent(stat.Field ?? string.Empty)] = stat.Value;
+            if (stat.Field is { } field && MeterKeys.TryGetValue(field, out var key))
+            {
+                values[key] = stat.Value;
+            }
         }
 
         return JsonSerializer.Serialize(values);
     }
-
-    private const string PercentSuffix = "_percent";
-
-    private static string StripPercent(string field) =>
-        field.EndsWith(PercentSuffix, StringComparison.Ordinal) ? field[..^PercentSuffix.Length] : field;
 
     /// <summary>Writes the <c>{ response, message }</c> envelope with the Spring status code.</summary>
     private static IResult AsResult(MessageResponse response) =>
