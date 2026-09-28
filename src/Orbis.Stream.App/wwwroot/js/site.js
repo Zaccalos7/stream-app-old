@@ -2,6 +2,39 @@
 // command/commandfor attributes; this file adds the confirmation dialog, the push channel of the
 // server and the few things a page can fill in on its own.
 
+// Theme Manager: Light, Dark, or System theme toggle with persistence
+const initTheme = () => {
+  const storedTheme = localStorage.getItem('orbis-theme') || 'system';
+  const applyTheme = (mode) => {
+    let effective = mode;
+    if (mode === 'system') {
+      effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', effective);
+    document.querySelectorAll('[data-theme-set]').forEach(btn => {
+      btn.setAttribute('aria-pressed', btn.dataset.themeSet === mode ? 'true' : 'false');
+    });
+  };
+
+  applyTheme(storedTheme);
+
+  document.addEventListener('click', event => {
+    const btn = event.target.closest?.('[data-theme-set]');
+    if (!btn) return;
+    const mode = btn.dataset.themeSet;
+    localStorage.setItem('orbis-theme', mode);
+    applyTheme(mode);
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if ((localStorage.getItem('orbis-theme') || 'system') === 'system') {
+      applyTheme('system');
+    }
+  });
+};
+
+initTheme();
+
 // The push channel: the server says when something changed instead of waiting to be asked. One
 // connection per page, opened only for what the page actually watches.
 const watchRows = !!document.querySelector("[data-refresh]");

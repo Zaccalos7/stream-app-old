@@ -12,6 +12,16 @@
     <title>@(ViewData["Title"] is string title ? $"{title} – Orbis Stream" : "Orbis Stream")</title>
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="/css/fluent.css" />
+    <script>
+        (function() {
+            var theme = localStorage.getItem('orbis-theme') || 'system';
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <script src="/js/site.js" defer></script>
 </head>
 <body>
@@ -23,6 +33,11 @@
         <a href="/orbis/mainSetting" aria-current="@Current("mainSetting", "mainVideoSetting", "mainChannelSetting")"><i class="icon">&#xE713;</i><span>@T["settings"]</span></a>
         <a href="/orbis/mainTaskManager" aria-current="@Current("mainTaskManager")"><i class="icon">&#xE9D9;</i><span>@T["taskManager"]</span></a>
         <div class="nav-spacer"></div>
+        <div class="segmented-control" role="radiogroup" aria-label="Theme">
+            <button type="button" class="segment" data-theme-set="light" title="Light" aria-label="Light Theme"><i class="icon">&#xE706;</i></button>
+            <button type="button" class="segment" data-theme-set="dark" title="Dark" aria-label="Dark Theme"><i class="icon">&#xE708;</i></button>
+            <button type="button" class="segment" data-theme-set="system" title="System" aria-label="System Theme"><i class="icon">&#xE7F4;</i></button>
+        </div>
         <form>
             <label class="field">
                 <span class="caption"><i class="icon">&#xE774;</i></span>

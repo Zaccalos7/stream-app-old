@@ -1,6 +1,7 @@
 /* Orbis Stream — Apple macOS / iOS Human Interface Guidelines inspired style */
-:root {
-  color-scheme: light dark;
+
+:root, html[data-theme="light"] {
+  color-scheme: light;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --icons: "Segoe Fluent Icons", "Segoe MDL2 Assets", -apple-system, sans-serif;
@@ -16,9 +17,9 @@
   --grad: var(--accent);
   --hero: var(--panel);
 
-  /* Light theme surfaces (macOS Ventura / Sonoma / Sequoia style) */
+  /* Light theme surfaces (macOS Sonoma / Sequoia style) */
   --bg: #f5f5f7;
-  --panel: rgba(255, 255, 255, 0.85);
+  --panel: rgba(255, 255, 255, 0.82);
   --panel-solid: #ffffff;
   --card: #ffffff;
   --card-hover: #fcfcfd;
@@ -57,6 +58,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
     --bg: #1e1e1e;
     --panel: rgba(44, 44, 46, 0.85);
     --panel-solid: #2c2c2e;
@@ -94,6 +96,46 @@
     --shadow-dialog: 0 28px 64px rgba(0, 0, 0, 0.65);
     --glow: 0 0 0 3px rgba(10, 132, 255, 0.35);
   }
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1e1e1e;
+  --panel: rgba(44, 44, 46, 0.85);
+  --panel-solid: #2c2c2e;
+  --card: #2c2c2e;
+  --card-hover: #3a3a3c;
+  --stroke: rgba(255, 255, 255, 0.1);
+  --stroke-strong: rgba(255, 255, 255, 0.2);
+  --control: #3a3a3c;
+  --control-hover: #48484a;
+  --tint: rgba(255, 255, 255, 0.06);
+  --tint-strong: rgba(255, 255, 255, 0.12);
+
+  --text: #f5f5f7;
+  --text-2: #a1a1a6;
+  --text-3: #86868b;
+
+  --accent: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-text: #409cff;
+  --on-accent: #ffffff;
+
+  --twitch: #bf5af2;
+  --youtube: #ff453a;
+
+  --success: #30d158;
+  --success-bg: rgba(48, 209, 88, 0.18);
+  --caution: #ffd60a;
+  --caution-bg: rgba(255, 214, 10, 0.18);
+  --critical: #ff453a;
+  --critical-bg: rgba(255, 69, 58, 0.18);
+
+  --smoke: rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-lift: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-dialog: 0 28px 64px rgba(0, 0, 0, 0.65);
+  --glow: 0 0 0 3px rgba(10, 132, 255, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -196,6 +238,43 @@ a { color: var(--accent-text); text-decoration: none; }
 
 .nav-spacer { flex: 1; }
 
+/* macOS Segmented Control */
+.segmented-control {
+  display: flex;
+  align-items: center;
+  background: var(--tint-strong);
+  padding: 2px;
+  border-radius: 9px;
+  border: 1px solid var(--stroke);
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.segmented-control .segment {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s, box-shadow 0.18s;
+}
+
+.segmented-control .segment:hover { color: var(--text); }
+
+.segmented-control .segment[aria-pressed="true"] {
+  background: var(--control);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
 .nav form { padding: 12px 6px 0; border-top: 1px solid var(--stroke); }
 .nav form label.field { flex-direction: row; align-items: center; gap: 8px; }
 .nav form .caption .icon { font-size: 16px; color: var(--text-2); }
@@ -249,7 +328,7 @@ h3 { font: 600 14px/20px var(--font); letter-spacing: -0.01em; margin: 0; }
   .shell { padding: 8px; gap: 8px; }
   .nav { width: 56px; padding: 12px 6px; }
   .nav a { justify-content: center; padding: 0; }
-  .nav a span:not(.icon), .nav-title span, .nav form { display: none; }
+  .nav a span:not(.icon), .nav-title span, .nav form, .segmented-control { display: none; }
   .nav-title { justify-content: center; padding: 0 0 14px; }
   .page { padding: 0 2px 20px; }
   .page-header { padding: 18px; }
