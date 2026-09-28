@@ -144,6 +144,32 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
     public EndToEndApiTests(ApplicationFixture fixture) => _fixture = fixture;
 
     [Fact]
+    public async Task TheDefaultSettingsAreNamedAfterTheirPlatform()
+    {
+        // Two default settings both called "test" are impossible to tell apart in the wizard and in
+        // the settings, so the name is the platform they are for.
+        using var response = await _fixture.Client.GetAsync("/videoSetting/getVideoSettings");
+        var settings = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        var defaults = settings.EnumerateArray()
+            .Where(setting => setting.GetProperty("isDefaultConfiguration").GetBoolean())
+            .ToDictionary(
+                setting => setting.GetProperty("defaultPlatformConfiguration").GetString() ?? string.Empty,
+                setting => setting.GetProperty("title").GetString() ?? string.Empty);
+
+        Assert.Equal("Default Twitch", defaults["Twitch"]);
+        Assert.Equal("Default Youtube", defaults["Youtube"]);
+        Assert.All(defaults.Values, title => Assert.False(string.Equals(title, "test", StringComparison.OrdinalIgnoreCase)));
+
+        // And the name is what the wizard shows, next to the platform.
+        using var page = await _fixture.Client.GetAsync("/orbis/mainLive?start=1");
+        var body = await page.Content.ReadAsStringAsync();
+
+        Assert.Contains("Default Twitch", body, StringComparison.Ordinal);
+        Assert.Contains("Default Youtube", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Root_RedirectsToTheClientRouter()
     {
         using var response = await _fixture.NoRedirectClient.GetAsync("/", HttpCompletionOption.ResponseHeadersRead);

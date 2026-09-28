@@ -46,25 +46,48 @@ public sealed class DatabaseBootstrapper : IHostedService
         InitializeDefaultVideoSetting("Youtube");
     }
 
+    /// <summary>
+    /// The default settings are named after the platform they are for: in the wizard and in the
+    /// settings two rows both called "test" are impossible to tell apart, and the name is the first
+    /// thing the user reads there.
+    /// </summary>
+    private static string TitleOf(string platform) => "Default " + platform;
+
+    /// <summary>
+    /// The name the first versions gave to every default setting. An installation that already has
+    /// one keeps it: only the placeholder is renamed, so a name the user chose is never overwritten.
+    /// </summary>
+    private static bool IsPlaceholderTitle(string? title) =>
+        string.IsNullOrWhiteSpace(title) || string.Equals(title.Trim(), "test", StringComparison.OrdinalIgnoreCase);
+
     private void InitializeDefaultVideoSetting(string platform)
     {
         var existing = _videoSettingRepository.FindByIsDefaultConfigurationTrueAndDefaultPlatformConfiguration(platform);
-        if (existing.Count > 1)
+        if (existing.Count > 0)
         {
+            // The first of the duplicates stays, the others go, exactly as before: a platform with
+            // two default settings would offer the wizard two identical rows.
             foreach (var duplicate in existing.Skip(1))
             {
                 _videoSettingRepository.Delete(duplicate.Id!.Value);
             }
-        }
 
-        if (existing.Count > 0)
-        {
+            var kept = existing[0];
+            if (IsPlaceholderTitle(kept.Title))
+            {
+                kept.Title = TitleOf(platform);
+                kept.LastModified = DateTime.Now;
+                _videoSettingRepository.Update(kept);
+                _logger.LogInformation(
+                    "Default VideoSetting of {Platform} renamed to {Title}", platform, kept.Title);
+            }
+
             return;
         }
 
         var setting = new VideoSettingEntity
         {
-            Title = "test",
+            Title = TitleOf(platform),
             VideoCodec = 27,
             VideoCodecName = "libx264",
             PixelFormat = 0,
