@@ -20,10 +20,6 @@
         <div class="nav-title"><img src="/favicon.ico" alt="" /><span>Orbis Stream</span></div>
         <a href="/orbis/mainMenu" aria-current="@Current("mainMenu")"><i class="icon">&#xE80F;</i><span>@T["dashboard"]</span></a>
         <a href="/orbis/mainLive" aria-current="@Current("mainLive", "countdown")"><i class="icon">&#xE714;</i><span>@T["liveManagement"]</span></a>
-        @* Starting a live is the one thing done from every page, so it sits in the side bar too.
-           On the live page the wizard is already there and opens at once; from anywhere else the
-           link goes there with ?start=1, which draws it open. *@
-        <a href="/orbis/mainLive?start=1" data-open-start><i class="icon">&#xE768;</i><span>@T["startLiveButton"]</span></a>
         <a href="/orbis/mainSetting" aria-current="@Current("mainSetting", "mainVideoSetting", "mainChannelSetting")"><i class="icon">&#xE713;</i><span>@T["settings"]</span></a>
         <a href="/orbis/mainTaskManager" aria-current="@Current("mainTaskManager")"><i class="icon">&#xE9D9;</i><span>@T["taskManager"]</span></a>
         <div class="nav-spacer"></div>
