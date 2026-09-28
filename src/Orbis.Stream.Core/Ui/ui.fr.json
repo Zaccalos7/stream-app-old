@@ -138,5 +138,20 @@
   "hideStreamKey": "Masquer la clé de diffusion",
   "dropVideoFolderHint": "Glissez ici une vidéo ou un dossier : son chemin est copié dans le champ",
   "dropVideoFolderDone": "Chemin copié depuis l'élément glissé",
-  "openLivePage": "Ouvrir la page du direct"
+  "openLivePage": "Ouvrir la page du direct",
+  "systemInfo": "Informations système",
+  "os": "Système d'exploitation",
+  "architecture": "Architecture",
+  "computer": "Ordinateur",
+  "cpu": "Processeur",
+  "cpuCores": "Cœurs",
+  "cpuSpeed": "Fréquence",
+  "ramTotal": "Mémoire",
+  "ramUsed": "Mémoire utilisée",
+  "disk": "Disque système",
+  "diskFree": "Espace libre",
+  "gpu": "Carte graphique",
+  "uptime": "Temps de fonctionnement",
+  "appUptime": "Temps de l'application",
+  "dotnet": "Runtime .NET"
 }

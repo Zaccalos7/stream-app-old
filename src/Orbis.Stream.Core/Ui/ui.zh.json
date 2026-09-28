@@ -138,5 +138,20 @@
   "hideStreamKey": "隐藏推流密钥",
   "dropVideoFolderHint": "把视频或文件夹拖到这里，路径会自动复制到输入框",
   "dropVideoFolderDone": "已复制拖入内容的路径",
-  "openLivePage": "打开直播页面"
+  "openLivePage": "打开直播页面",
+  "systemInfo": "系统信息",
+  "os": "操作系统",
+  "architecture": "体系结构",
+  "computer": "计算机",
+  "cpu": "处理器",
+  "cpuCores": "核心",
+  "cpuSpeed": "频率",
+  "ramTotal": "内存",
+  "ramUsed": "已用内存",
+  "disk": "系统磁盘",
+  "diskFree": "可用空间",
+  "gpu": "显卡",
+  "uptime": "运行时间",
+  "appUptime": "程序运行时间",
+  "dotnet": ".NET 运行时"
 }

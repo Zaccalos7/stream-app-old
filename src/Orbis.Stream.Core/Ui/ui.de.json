@@ -138,5 +138,20 @@
   "hideStreamKey": "Stream-Schlüssel verbergen",
   "dropVideoFolderHint": "Ziehe ein Video oder einen Ordner hierher, der Pfad wird in das Feld kopiert",
   "dropVideoFolderDone": "Pfad aus dem Gezogenen kopiert",
-  "openLivePage": "Live-Seite öffnen"
+  "openLivePage": "Live-Seite öffnen",
+  "systemInfo": "Systeminformationen",
+  "os": "Betriebssystem",
+  "architecture": "Architektur",
+  "computer": "Computer",
+  "cpu": "Prozessor",
+  "cpuCores": "Kerne",
+  "cpuSpeed": "Frequenz",
+  "ramTotal": "Arbeitsspeicher",
+  "ramUsed": "Belegter Arbeitsspeicher",
+  "disk": "Systemlaufwerk",
+  "diskFree": "Freier Speicher",
+  "gpu": "Grafikkarte",
+  "uptime": "Laufzeit",
+  "appUptime": "Laufzeit der App",
+  "dotnet": ".NET-Laufzeit"
 }

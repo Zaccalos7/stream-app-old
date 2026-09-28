@@ -69,4 +69,10 @@ public sealed class SystemInfoService
 
         return value;
     }
+
+    /// <summary>
+    /// What the machine is. Unlike the counters above, nothing here changes while the page is open,
+    /// so the caller reads it once and keeps it out of the refresh of the meters.
+    /// </summary>
+    public IReadOnlyList<SystemFact> GetSystemFacts() => _provider.GetFacts();
 }

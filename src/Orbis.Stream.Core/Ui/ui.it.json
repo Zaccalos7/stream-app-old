@@ -138,5 +138,20 @@
   "hideStreamKey": "Nascondi la chiave di stream",
   "dropVideoFolderHint": "Trascina qui un video o una cartella: il percorso viene copiato nel campo",
   "dropVideoFolderDone": "Percorso copiato da ciò che hai trascinato",
-  "openLivePage": "Apri la pagina della live"
+  "openLivePage": "Apri la pagina della live",
+  "systemInfo": "Informazioni di sistema",
+  "os": "Sistema operativo",
+  "architecture": "Architettura",
+  "computer": "Computer",
+  "cpu": "Processore",
+  "cpuCores": "Core",
+  "cpuSpeed": "Frequenza",
+  "ramTotal": "Memoria totale",
+  "ramUsed": "Memoria in uso",
+  "disk": "Disco di sistema",
+  "diskFree": "Spazio libero",
+  "gpu": "Scheda video",
+  "uptime": "Uptime sistema",
+  "appUptime": "Uptime applicazione",
+  "dotnet": "Runtime .NET"
 }

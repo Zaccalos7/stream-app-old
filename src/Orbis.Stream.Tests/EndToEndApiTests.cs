@@ -504,6 +504,9 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
                 || form.Contains("handler=Replay", StringComparison.Ordinal)
                 || form.Contains("handler=Unlock", StringComparison.Ordinal))
             .Select(form => form[form.IndexOf("action=\"", StringComparison.Ordinal)..])
+            // The page carries the ampersands of the query string escaped: they are the separators
+            // this test looks for, so the address is read as the browser will send it.
+            .Select(form => WebUtility.HtmlDecode(form))
             .ToList();
 
         var rowForms = actions.Where(action => !action.Contains("handler=Unlock", StringComparison.Ordinal)).ToList();
@@ -513,6 +516,40 @@ public sealed class EndToEndApiTests : IClassFixture<ApplicationFixture>
 
         var unlockForms = actions.Where(action => action.Contains("handler=Unlock", StringComparison.Ordinal)).ToList();
         Assert.All(unlockForms, action => Assert.Matches(@"[?&]videoKey=\d+", action));
+    }
+
+    [Fact]
+    public async Task TaskManager_ShowsTheMetersAndWhatTheMachineIs()
+    {
+        using var page = await _fixture.Client.GetAsync("/orbis/mainTaskManager");
+        var body = await page.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+
+        // The four meters of the Java build: the test host answers in English.
+        Assert.Contains("ring", body, StringComparison.Ordinal);
+        Assert.Contains("CPU TEMPERATURE", body, StringComparison.Ordinal);
+        Assert.Contains("SWAP", body, StringComparison.Ordinal);
+
+        // The system information panel: the labels come from the bundle and the values from the
+        // machine, so at least the machine name and the runtime are always there.
+        Assert.Contains("class=\"facts\"", body, StringComparison.Ordinal);
+        Assert.Contains("System information", body, StringComparison.Ordinal);
+        Assert.Contains(Environment.MachineName, body, StringComparison.Ordinal);
+        Assert.Contains(".NET", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TaskManager_RefreshesTheMetersWithoutRepeatingTheFacts()
+    {
+        // The refresh of the meters must not carry the panel: reading WMI on it every five seconds
+        // would be the most expensive thing in the application.
+        using var page = await _fixture.Client.GetAsync("/orbis/mainTaskManager?handler=Stats");
+        var body = await page.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.Contains("ring", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"facts\"", body, StringComparison.Ordinal);
     }
 
     /// <summary>The live page needs the platform (history) and the setting of every video.</summary>

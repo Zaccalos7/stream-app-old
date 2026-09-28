@@ -138,5 +138,20 @@
   "hideStreamKey": "Hide stream key",
   "dropVideoFolderHint": "Drag a video or a folder here and its path is copied into the field",
   "dropVideoFolderDone": "Path copied from what you dropped",
-  "openLivePage": "Open the live page"
+  "openLivePage": "Open the live page",
+  "systemInfo": "System information",
+  "os": "Operating system",
+  "architecture": "Architecture",
+  "computer": "Computer",
+  "cpu": "Processor",
+  "cpuCores": "Cores",
+  "cpuSpeed": "Frequency",
+  "ramTotal": "Memory",
+  "ramUsed": "Memory in use",
+  "disk": "System disk",
+  "diskFree": "Free space",
+  "gpu": "Graphics",
+  "uptime": "Uptime",
+  "appUptime": "App uptime",
+  "dotnet": ".NET runtime"
 }

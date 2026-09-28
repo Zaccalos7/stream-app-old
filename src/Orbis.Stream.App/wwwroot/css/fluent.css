@@ -527,6 +527,30 @@ table.list tbody tr { transition: background 0.15s; }
 table.list tbody tr:hover { background: var(--tint); }
 table.list td.path { max-width: 380px; }
 
+/* System information panel: label on the left, value on the right, two columns when there is room. */
+.facts {
+  display: grid;
+  gap: 2px 28px;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  margin: 0;
+}
+.fact {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--stroke);
+}
+.fact dt {
+  flex: none;
+  width: 190px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.fact dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* History table: it has more columns than the others, so it is given a larger body text, taller
    rows and a path wide enough to read almost in full. */
 table.list.roomy { font-size: 15px; }

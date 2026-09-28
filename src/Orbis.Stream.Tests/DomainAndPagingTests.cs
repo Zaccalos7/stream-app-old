@@ -5,6 +5,7 @@ using Orbis.Stream.Core.Hosting;
 using Orbis.Stream.Core.Data;
 using Orbis.Stream.Core.Domain;
 using Orbis.Stream.Core.Pages;
+using Orbis.Stream.Core.SystemInfo;
 
 namespace Orbis.Stream.Tests;
 
@@ -300,5 +301,54 @@ public sealed class LiveLinkTests
         Assert.Equal("\uE714", LiveLinkView.GlyphOf("youtube"));
         Assert.Equal("\uE714", LiveLinkView.GlyphOf("anythingElse"));
         Assert.Null(LiveLinkView.LabelOf("anythingElse"));
+    }
+}
+
+public sealed class SystemFactTests
+{
+    [Theory]
+    [InlineData(0UL, "0 B")]
+    [InlineData(1023UL, "1023 B")]
+    [InlineData(1024UL, "1 kB")]
+    [InlineData(1536UL, "1.5 kB")]
+    [InlineData(1073741824UL, "1 GB")]
+    [InlineData(34359738368UL, "32 GB")]
+    [InlineData(3817868576UL, "3.6 GB")]
+    public void FormatBytes_UsesTheBinaryDivisorAndNoLocale(ulong bytes, string expected) =>
+        Assert.Equal(expected, SystemFact.FormatBytes(bytes));
+
+    [Fact]
+    public void FormatUptime_IsReadableWithoutAnyLanguage() =>
+        Assert.Equal("3.05:04:05", SystemFact.FormatUptime(new TimeSpan(3, 5, 4, 5)));
+
+    [Fact]
+    public void FormatUptime_OfAClockThatWentBackwardsIsZero()
+    {
+        Assert.Equal("0.00:00:00", SystemFact.FormatUptime(TimeSpan.FromSeconds(-90)));
+    }
+
+    [Fact]
+    public void Facts_DescribeTheMachineThatRunsThem()
+    {
+        var facts = new PortableSystemInfoProvider().GetFacts().ToDictionary(fact => fact.Key, fact => fact.Value);
+
+        Assert.NotEmpty(facts[SystemFact.Os]);
+        Assert.NotEmpty(facts[SystemFact.Computer]);
+        Assert.Equal(Environment.ProcessorCount.ToString(), facts[SystemFact.CpuCores].Split(' ')[0]);
+        Assert.False(string.IsNullOrWhiteSpace(facts[SystemFact.Dotnet]));
+    }
+
+    [Fact]
+    public void Facts_NeverCarryAnEmptyValue()
+    {
+        var facts = new PortableSystemInfoProvider().GetFacts();
+
+        Assert.NotEmpty(facts);
+        Assert.All(facts, fact =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(fact.Key));
+            Assert.False(string.IsNullOrWhiteSpace(fact.Value));
+        });
+        Assert.Equal(facts.Select(fact => fact.Key).Distinct().Count(), facts.Count);
     }
 }
