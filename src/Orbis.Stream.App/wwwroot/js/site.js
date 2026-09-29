@@ -2,15 +2,17 @@
 // command/commandfor attributes; this file adds the confirmation dialog, the push channel of the
 // server and the few things a page can fill in on its own.
 
-// Theme Manager: Light, Dark, or System theme toggle with persistence
+// Theme Manager: Light or Dark theme toggle with persistence
 const initTheme = () => {
-  const storedTheme = localStorage.getItem('orbis-theme') || 'system';
+  let storedTheme = localStorage.getItem('orbis-theme') || 'dark';
+  // If a previous session stored 'system', convert it to 'dark'
+  if (storedTheme === 'system') {
+    storedTheme = 'dark';
+    localStorage.setItem('orbis-theme', 'dark');
+  }
+
   const applyTheme = (mode) => {
-    let effective = mode;
-    if (mode === 'system') {
-      effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    document.documentElement.setAttribute('data-theme', effective);
+    document.documentElement.setAttribute('data-theme', mode);
     document.querySelectorAll('[data-theme-set]').forEach(btn => {
       btn.setAttribute('aria-pressed', btn.dataset.themeSet === mode ? 'true' : 'false');
     });
@@ -24,12 +26,6 @@ const initTheme = () => {
     const mode = btn.dataset.themeSet;
     localStorage.setItem('orbis-theme', mode);
     applyTheme(mode);
-  });
-
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if ((localStorage.getItem('orbis-theme') || 'system') === 'system') {
-      applyTheme('system');
-    }
   });
 };
 
